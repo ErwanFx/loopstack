@@ -1,0 +1,2 @@
+on: [failure, stale-heartbeat, unknown-side-effect]
+delivery: simulated-tested

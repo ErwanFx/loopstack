@@ -1,0 +1,4 @@
+interface:
+  display_name: "List Loops"
+  short_description: "List every loop and its health"
+  default_prompt: "Use $loop-list to show all AI Loops and their current status."

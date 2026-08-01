@@ -1,0 +1,4 @@
+interface:
+  display_name: "Improve Loop"
+  short_description: "Propose evidence-based loop improvements"
+  default_prompt: "Use $loop-improve to improve this AI Loop from measured outcomes."

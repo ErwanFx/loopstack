@@ -1,0 +1,2 @@
+scenario: rejected-approval
+inject: human-rejects

@@ -1,0 +1,2 @@
+requiredFor: [publish-live]
+shadowActions: [simulate-draft]

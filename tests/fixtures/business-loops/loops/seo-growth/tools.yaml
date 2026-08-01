@@ -1,0 +1,4 @@
+tools:
+  - { name: fake-openseo, mode: fixture }
+  - { name: fake-cms, action: simulate_draft }
+network: forbidden

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Implement Loop"
+  short_description: "Build only an approved loop plan"
+  default_prompt: "Use $loop-implement to implement this approved AI Loop plan."

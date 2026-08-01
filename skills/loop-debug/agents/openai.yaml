@@ -1,0 +1,4 @@
+interface:
+  display_name: "Debug Loop"
+  short_description: "Investigate AI Loop failures safely"
+  default_prompt: "Use $loop-debug to investigate this AI Loop failure."

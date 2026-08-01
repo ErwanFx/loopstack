@@ -1,0 +1,4 @@
+interface:
+  display_name: "Design Loop Storage"
+  short_description: "Choose operational memory for a loop"
+  default_prompt: "Use $loop-storage-design to design storage for this AI Loop."

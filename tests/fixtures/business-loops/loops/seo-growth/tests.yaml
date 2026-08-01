@@ -1,0 +1,3 @@
+scenarios: [nominal, missing-data, low-confidence, duplicate-webhook, tool-timeout]
+externalNetworkAllowed: false
+externalMutationsAllowed: false

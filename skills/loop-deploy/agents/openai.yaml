@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deploy Loop"
+  short_description: "Activate an AI Loop progressively"
+  default_prompt: "Use $loop-deploy to roll out this validated AI Loop safely."

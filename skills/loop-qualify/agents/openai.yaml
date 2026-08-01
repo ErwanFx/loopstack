@@ -1,0 +1,4 @@
+interface:
+  display_name: "Qualify Loop"
+  short_description: "Classify an automation opportunity"
+  default_prompt: "Use $loop-qualify to classify this process and test loop readiness."

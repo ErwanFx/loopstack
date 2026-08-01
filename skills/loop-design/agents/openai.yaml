@@ -1,0 +1,4 @@
+interface:
+  display_name: "Design Loop"
+  short_description: "Design a measurable and controlled loop"
+  default_prompt: "Use $loop-design to turn the qualified process into a loop design."

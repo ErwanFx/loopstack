@@ -1,0 +1,37 @@
+classificationHints:
+  recurring: true
+  decisionMode: judgment
+  feedbackLoop: true
+loop:
+  id: unsafe-outreach
+  name: Unsafe Outreach
+  version: 1
+  status: designing
+  target: { metric: positive_replies, desired: 20, horizonDays: 30 }
+  current: { value: 2, observedAt: "2026-08-01T00:00:00.000Z" }
+  triggers: [{ type: cron }]
+  feedback: [{ metric: positive_replies, delayDays: 7 }]
+readiness:
+  recurringOpportunity: true
+  target: { metric: positive_replies, desired: 20 }
+  currentState: { value: 2, observedAt: "2026-08-01T00:00:00.000Z" }
+  gap: { value: 18 }
+  actionSpace: [select-prospect, send-email]
+  feedback: [{ metric: positive_replies, delayDays: 7 }]
+  measurementHorizonDays: 30
+  dataAccess: verified
+  owner: Growth Lead
+  budget: { maxCostPerRun: 10, maxIterations: 3 }
+  stopConditions: []
+  escalationConditions: []
+  idempotencyStrategy: deduplicate by prospect and campaign
+  storageConnection: connected
+  toolConnections: [{ name: email, status: connected }]
+  alertConnection: untested
+  runSuccessCriteria: [message delivered]
+  businessSuccessCriteria: [20 positive replies within 30 days]
+  evidenceQuality: 0.7
+  leverage: 0.8
+  reversibility: 0.2
+  dataCompleteness: 0.8
+  measurementSpeed: 0.8

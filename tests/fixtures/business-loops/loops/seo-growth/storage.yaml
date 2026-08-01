@@ -1,0 +1,4 @@
+provider: convex
+connection: simulated-verified
+schemaVersion: 1
+isolation: shared-by-loop-id

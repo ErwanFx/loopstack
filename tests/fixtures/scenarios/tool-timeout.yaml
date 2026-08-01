@@ -1,0 +1,2 @@
+scenario: tool-timeout
+inject: timeout-after-ambiguous-side-effect

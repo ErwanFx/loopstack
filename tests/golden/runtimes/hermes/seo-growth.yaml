@@ -1,0 +1,31 @@
+runtime: hermes
+manifestVersion: 1
+loopId: seo-growth
+version: 1
+skills:
+  - seo-growth-loop
+triggers:
+  - type: manual
+    enabled: false
+  - type: webhook
+    enabled: false
+  - type: schedule
+    enabled: false
+    schedule: "0 8 * * 1"
+approvalRequired: true
+alertPolicy: on-failure
+target:
+  metric: qualified_leads
+  desired: 40
+  horizonDays: 90
+feedback:
+  - metric: qualified_leads
+    delayDays: 30
+webhook:
+  route: /loopstack/seo-growth
+  secretEnv: LOOPSTACK_SEO_GROWTH_WEBHOOK_SECRET
+  skills:
+    - seo-growth-loop
+  idempotencyHeader: x-loopstack-idempotency-key
+deliveryTarget: log
+workDirectory: loops/seo-growth

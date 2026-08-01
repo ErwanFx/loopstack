@@ -1,0 +1,8 @@
+classificationHints:
+  recurring: true
+  decisionMode: deterministic
+  feedbackLoop: false
+process:
+  id: invoice-routing
+  description: Route invoices by supplier code and amount threshold
+  rulesAreComplete: true

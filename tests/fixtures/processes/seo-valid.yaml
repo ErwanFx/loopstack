@@ -1,0 +1,38 @@
+classificationHints:
+  recurring: true
+  decisionMode: judgment
+  feedbackLoop: true
+loop:
+  id: seo-growth
+  name: SEO Growth
+  version: 1
+  status: designing
+  target: { metric: qualified_leads, desired: 40, horizonDays: 90 }
+  current: { value: 12, observedAt: "2026-08-01T00:00:00.000Z" }
+  triggers: [{ type: cron }]
+  feedback: [{ metric: qualified_leads, delayDays: 30 }]
+readiness:
+  recurringOpportunity: true
+  target: { metric: qualified_leads, desired: 40 }
+  currentState: { value: 12, observedAt: "2026-08-01T00:00:00.000Z" }
+  gap: { value: 28 }
+  actionSpace: [research, draft, publish-with-approval]
+  feedback: [{ metric: qualified_leads, delayDays: 30 }]
+  measurementHorizonDays: 90
+  dataAccess: verified
+  owner: Head of Growth
+  approvalPolicy: { mode: conditional, requiredFor: [publish] }
+  budget: { maxCostPerRun: 25, maxIterations: 3 }
+  stopConditions: [budget exceeded]
+  escalationConditions: [three failed runs]
+  idempotencyStrategy: deduplicate by keyword and content hash
+  storageConnection: connected
+  toolConnections: [{ name: openseo, status: connected }]
+  alertConnection: tested
+  runSuccessCriteria: [draft passes factual checks]
+  businessSuccessCriteria: [40 qualified leads within 90 days]
+  evidenceQuality: 0.8
+  leverage: 0.9
+  reversibility: 0.7
+  dataCompleteness: 0.9
+  measurementSpeed: 0.6

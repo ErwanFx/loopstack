@@ -1,0 +1,4 @@
+interface:
+  display_name: "Loop Idea Interview"
+  short_description: "Explore a business process as a loop"
+  default_prompt: "Use $loop-idea to interview me about this automation idea."

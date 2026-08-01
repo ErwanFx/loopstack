@@ -1,0 +1,4 @@
+interface:
+  display_name: "Monitor Loop"
+  short_description: "Watch loop health and outcomes"
+  default_prompt: "Use $loop-monitor to inspect this AI Loop health and outcomes."

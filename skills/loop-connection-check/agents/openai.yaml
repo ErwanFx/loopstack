@@ -1,0 +1,4 @@
+interface:
+  display_name: "Check Loop Connection"
+  short_description: "Verify native storage capability safely"
+  default_prompt: "Use $loop-connection-check to verify this loop storage connection."

@@ -1,0 +1,22 @@
+{
+  "runtime": "claude-code",
+  "manifestVersion": 1,
+  "loopId": "seo-growth",
+  "version": 1,
+  "skills": ["seo-growth-loop"],
+  "triggers": [
+    { "type": "manual", "enabled": false },
+    { "type": "webhook", "enabled": false, "external": true },
+    { "type": "cron", "enabled": false, "external": true, "schedule": "0 8 * * 1" }
+  ],
+  "approvalRequired": true,
+  "alertPolicy": "on-failure",
+  "target": { "metric": "qualified_leads", "desired": 40, "horizonDays": 90 },
+  "feedback": [{ "metric": "qualified_leads", "delayDays": 30 }],
+  "permissions": { "allow": [] },
+  "externalTriggerRequirements": [
+    "webhook: invoke claude with loop id and idempotency key",
+    "cron: invoke claude with loop id and idempotency key"
+  ],
+  "workDirectory": "loops/seo-growth"
+}

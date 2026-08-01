@@ -1,0 +1,4 @@
+interface:
+  display_name: "Modify Loop"
+  short_description: "Plan controlled AI Loop changes"
+  default_prompt: "Use $loop-modify to change this AI Loop safely."

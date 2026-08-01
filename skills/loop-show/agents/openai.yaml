@@ -1,0 +1,4 @@
+interface:
+  display_name: "Show Loop"
+  short_description: "Inspect one loop in operational detail"
+  default_prompt: "Use $loop-show to inspect this AI Loop in detail."

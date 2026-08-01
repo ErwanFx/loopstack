@@ -1,0 +1,3 @@
+businessMetric: qualified_leads
+followUpDays: [7, 14, 30]
+proxyMetrics: [draft_quality]

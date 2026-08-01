@@ -1,0 +1,4 @@
+interface:
+  display_name: "Eric Siu Review"
+  short_description: "Challenge a loop before implementation"
+  default_prompt: "Use $loop-eric-review to challenge this loop design."

@@ -1,0 +1,5 @@
+{
+  "name": "loopstack-{{loop_id}}",
+  "version": "{{version}}",
+  "skills": "./skills/"
+}

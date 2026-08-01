@@ -1,0 +1,4 @@
+interface:
+  display_name: "Test Loop"
+  short_description: "Run blocking QA for an AI Loop"
+  default_prompt: "Use $loop-qa to validate this implemented AI Loop."

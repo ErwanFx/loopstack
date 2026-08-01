@@ -1,0 +1,4 @@
+interface:
+  display_name: "Set Up Loop Storage"
+  short_description: "Provision approved loop memory safely"
+  default_prompt: "Use $loop-storage-setup to prepare and verify this approved storage schema."

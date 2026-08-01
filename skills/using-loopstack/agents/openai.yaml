@@ -1,0 +1,4 @@
+interface:
+  display_name: "Loopstack Guide"
+  short_description: "Route any business process into Loopstack"
+  default_prompt: "Use $using-loopstack to decide how to automate this business process."

@@ -1,0 +1,25 @@
+{
+  "name": "loopstack",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "loopstack": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "check": "tsc --noEmit && vitest run",
+    "loopstack": "tsx src/cli.ts",
+    "schema:export": "tsx scripts/export-schemas.ts"
+  },
+  "dependencies": {
+    "yaml": "^2.9.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  }
+}
