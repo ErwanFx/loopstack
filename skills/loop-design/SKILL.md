@@ -23,6 +23,17 @@ Two deliverable layers:
 
 **Don’t use for:** discovery, classification-only, storage provisioning, implementation, or go-live.
 
+### Revision mode after critical review
+
+When `loop-eric-review` returns `verdict: revise` and routes back here:
+
+1. Load `eric-review.yaml` and treat `required_revisions` as the exact scope.
+2. Preserve every item listed under `strengths_to_preserve` plus previously approved storage/schema and human gates; do not restart discovery or storage design.
+3. Bump the design version, create a revision manifest, and make the corrections visible in both the HTML and YAML package.
+4. Keep unresolved external dependencies honest (for example `paused_pending_webhook`) instead of pretending the blocker is fixed.
+5. Present the revised HTML for owner approval. On approval, route back to `loop-eric-review` for verification — **not** to `loop-storage-design`.
+6. Any new external mutation discovered during the revision keeps its own later approval boundary.
+
 ## Hard rules
 
 1. **Human visual gate is the design exit.** The owner must see the HTML blueprint and answer **yes/no** (or request changes). Do **not** treat YAML-only output as design-complete.
@@ -120,7 +131,7 @@ Validate `loop.yaml` against LoopDefinition schema when the loopstack CLI is ava
 
 ### 5. Present and wait for owner validation
 
-User-facing summary must be short and point at the **HTML first**.
+User-facing summary must be short and point at the **HTML first**. State whether this is an initial design or a critical-review revision. In revision mode, summarize only changed components and preserved components.
 
 **Stop after presentation** until the owner replies with one of:
 
@@ -134,7 +145,7 @@ User-facing summary must be short and point at the **HTML first**.
 
 ## Handoff
 
-Only after owner approval:
+Only after owner approval of an **initial design**:
 
 ```yaml
 handoff:
@@ -150,6 +161,19 @@ handoff:
   next_skill: loop-storage-design
   blocking_requirements:
     - activation:…   # checklist only; design already approved
+```
+
+After owner approval of a revision requested by `loop-eric-review`:
+
+```yaml
+handoff:
+  loop_id: ecoi-seo-content
+  completed_skill: loop-design
+  revision_id: eric-revision-…
+  status: completed
+  artifacts: [design/ai-loop-blueprint.html, design/revision-….yaml, …]
+  next_skill: loop-eric-review
+  blocking_requirements: []
 ```
 
 If waiting on review:
