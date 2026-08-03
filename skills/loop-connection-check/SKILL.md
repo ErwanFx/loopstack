@@ -14,7 +14,7 @@ Discover and verify an existing MCP, CLI, skill, or tool. Use the agent's native
 1. Identify the runtime, provider, capability kind, and exact tool name.
 2. Confirm authentication without displaying credentials.
 3. Perform only non-mutating discovery: account or project identity, target container access, read permission, schema metadata access, and schema-write capability.
-4. Confirm the alert delivery channel with a separately authorized safe test.
+4. Confirm the alert delivery channel with a separately authorized safe test. A scheduler acceptance, successful agent run, or consumed one-shot job is **not delivery proof**. Require evidence of the actual destination channel and thread placement (for Slack: expected channel ID and whether a thread timestamp/topic was used), or explicit recipient confirmation. If the user asks to stop testing and wait for a webhook, mark the blocker `paused_pending_webhook` and do not retry.
 5. Redact tokens, API keys, secrets, passwords, cookies, URLs containing credentials, and personal data from evidence.
 6. Evaluate the evidence with Loopstack's connection gate.
 
