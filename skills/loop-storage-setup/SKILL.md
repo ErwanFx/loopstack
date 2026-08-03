@@ -7,11 +7,18 @@ description: Use when a loop has a verified native storage connection and needs 
 
 ## Overview
 
-Translate the blueprint into auditable instructions for the agent's native connection. Approval authorizes only the exact plan hash, provider, environment, resources, and expiry.
+Use in either of two explicit modes:
+
+1. **Bootstrap mode** — the provider connection is authenticated but the approved project/container/deployment does not exist. Create only that empty boundary after exact hashed-plan approval, verify identity/read access, then return to `loop-connection-check`. Do **not** provision loop tables in the same approval.
+2. **Schema mode** — the target connection is verified and needs the approved non-destructive operational-memory schema provisioned.
+
+Translate the relevant blueprint into auditable instructions for the agent's native connection. Approval authorizes only the exact plan hash, provider, environment, resources, and expiry.
 
 ## Approval Boundary
 
-Generate the provisioning plan and present every table, worksheet, field, index, permission, verification step, and rollback action. Request explicit approval. Do not create tables, worksheets, fields, indexes, test rows, or external resources while approval is absent, expired, or mismatched.
+Generate the provisioning plan and present every project/container/deployment or table/worksheet/field/index (according to mode), permission, verification step, and rollback action. Request explicit approval. Do not create any external resource while approval is absent, expired, or mismatched.
+
+Bootstrap and schema approvals are separate. An approved storage design does not itself authorize cloud resource creation; an approved bootstrap does not authorize table/schema provisioning.
 
 After approval:
 
@@ -19,8 +26,9 @@ After approval:
 2. Execute each non-destructive instruction through the named native connection.
 3. Stop if a new mutation, destructive change, broader permission, or different environment is needed.
 4. Collect redacted resource and schema evidence.
-5. Run `loopstack storage verify` and require `verified`.
-6. Record the connection and schema version in `storage.yaml`.
+5. In **bootstrap mode**, verify the empty target identity/access, then return to `loop-connection-check`; do not create tables.
+6. In **schema mode**, run `loopstack storage verify` and require `verified`.
+7. Record the connection and schema version in `storage.yaml` as appropriate.
 
 The agent must never claim setup succeeded merely because a tool returned success. Claim success only from complete verification evidence. Never copy credentials into artifacts or logs.
 
