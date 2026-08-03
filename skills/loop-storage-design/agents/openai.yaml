@@ -1,4 +1,4 @@
 interface:
   display_name: "Design Loop Storage"
-  short_description: "Choose operational memory for a loop"
-  default_prompt: "Use $loop-storage-design to design storage for this AI Loop."
+  short_description: "Visual storage architecture + deterministic contract; owner approves before connection check"
+  default_prompt: "Use $loop-storage-design. Load architecture-diagram, generate storage-design-blueprint.html plus storage.yaml/storage-blueprint.json, present the visual, and wait for APPROVE storage design before loop-connection-check. Do not connect, provision, or test-write."

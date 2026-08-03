@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ECOI — Storage Design Blueprint</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#020617;--card:#0f172a;--grid:#1e293b;--text:#e2e8f0;--muted:#94a3b8;--cyan:#22d3ee;--green:#34d399;--violet:#a78bfa;--amber:#fbbf24;--rose:#fb7185;--orange:#fb923c}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:12px/1.5 "JetBrains Mono",monospace;background-image:linear-gradient(#1e293b55 1px,transparent 1px),linear-gradient(90deg,#1e293b55 1px,transparent 1px);background-size:40px 40px}.wrap{max-width:1180px;margin:auto;padding:28px 20px 48px}h1{font-size:19px;margin:0 0 6px}.sub{color:var(--muted)}.badge{display:inline-block;margin-top:10px;padding:4px 9px;border:1px solid #334155;border-radius:999px;color:var(--amber);font-size:10px}.panel,.card{background:#0f172ae8;border:1px solid #334155;border-radius:10px}.panel{margin-top:22px;padding:14px}.section{margin-top:26px}.section h2{font-size:14px;margin:0 0 12px;color:#f8fafc}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.card{padding:14px}.card h3{font-size:11px;margin:0 0 8px}.card ul{margin:0;padding-left:17px;color:var(--muted);font-size:10px}.card li{margin:5px 0}table{width:100%;border-collapse:collapse;background:#0f172ae8;border:1px solid #334155;font-size:10px}th,td{text-align:left;padding:9px;border-bottom:1px solid #1e293b;vertical-align:top}th{color:var(--cyan);font-weight:600}code{color:#c4b5fd}.ok{color:var(--green)}.warn{color:var(--amber)}.no{color:var(--rose)}.foot{color:#64748b;margin-top:20px;font-size:9px}@media(max-width:850px){.grid{grid-template-columns:1fr}.panel{overflow:auto}svg{min-width:1000px}}
+</style>
+</head><body><div class="wrap">
+<header><h1>● ECOI SEO Loop — Storage Design</h1><div class="sub">loop_id: ecoi-seo-content · provider: Convex · projet indépendant de Velora · DESIGN ONLY</div><span class="badge">À VALIDER — aucune DB créée · aucune écriture live</span></header>
+
+<div class="panel">
+<svg viewBox="0 0 1100 650" width="100%" role="img" aria-label="Flux de stockage de l'AI Loop ECOI">
+<defs>
+ <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#94a3b8"/></marker>
+ <marker id="arrg" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#34d399"/></marker>
+ <marker id="arrv" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#a78bfa"/></marker>
+</defs>
+<!-- arrows behind boxes -->
+<g fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arr)">
+ <path d="M190 100 C260 100 270 170 335 170"/><path d="M190 220 C260 220 270 190 335 190"/>
+ <path d="M535 180 C585 180 590 180 635 180"/>
+ <path d="M535 215 C590 260 595 360 635 390"/>
+</g>
+<g fill="none" stroke="#a78bfa" stroke-width="2" marker-end="url(#arrv)"><path d="M865 180 C940 180 940 250 940 305"/></g>
+<g fill="none" stroke="#34d399" stroke-width="2" marker-end="url(#arrg)"><path d="M865 390 C920 390 920 420 940 420"/><path d="M940 490 C850 580 470 590 430 245"/></g>
+<!-- source boxes -->
+<g><rect x="30" y="55" width="160" height="90" rx="8" fill="#0f172a"/><rect x="30" y="55" width="160" height="90" rx="8" fill="rgba(30,41,59,.5)" stroke="#22d3ee" stroke-width="2"/><text x="48" y="82" fill="#22d3ee" font-size="12" font-weight="700">OpenSEO / GSC</text><text x="48" y="104" fill="#94a3b8" font-size="9">SoT search</text><text x="48" y="121" fill="#94a3b8" font-size="8">clics · impressions · CTR · positions</text></g>
+<g><rect x="30" y="175" width="160" height="90" rx="8" fill="#0f172a"/><rect x="30" y="175" width="160" height="90" rx="8" fill="rgba(30,41,59,.5)" stroke="#22d3ee" stroke-width="2"/><text x="48" y="202" fill="#22d3ee" font-size="12" font-weight="700">Velora</text><text x="48" y="224" fill="#94a3b8" font-size="9">SoT business / leads</text><text x="48" y="241" fill="#94a3b8" font-size="8">lecture agrégée organique uniquement</text></g>
+<!-- loop runtime -->
+<g><rect x="335" y="125" width="200" height="120" rx="8" fill="#0f172a"/><rect x="335" y="125" width="200" height="120" rx="8" fill="rgba(6,78,59,.35)" stroke="#34d399" stroke-width="2"/><text x="355" y="153" fill="#34d399" font-size="12" font-weight="700">Hermes SEO Loop</text><text x="355" y="176" fill="#e2e8f0" font-size="9">Observe → Evaluate → Act</text><text x="355" y="196" fill="#94a3b8" font-size="8">écrit traces, décisions, résultats</text><text x="355" y="215" fill="#94a3b8" font-size="8">idempotencyKey sur chaque run/action</text></g>
+<!-- convex boundary -->
+<rect x="620" y="35" width="270" height="500" rx="14" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="8 5"/><text x="640" y="60" fill="#fbbf24" font-size="11" font-weight="700">CONVEX — PROJET SEO INDÉPENDANT</text><text x="640" y="77" fill="#94a3b8" font-size="8">pas Velora · isolation loopId · 18 entités</text>
+<!-- db groups -->
+<g><rect x="640" y="100" width="225" height="125" rx="8" fill="#0f172a"/><rect x="640" y="100" width="225" height="125" rx="8" fill="rgba(76,29,149,.35)" stroke="#a78bfa" stroke-width="2"/><text x="656" y="125" fill="#a78bfa" font-size="11" font-weight="700">Trace canonique (15)</text><text x="656" y="147" fill="#e2e8f0" font-size="8">loops · versions · runs · events</text><text x="656" y="164" fill="#e2e8f0" font-size="8">observations · decisions · actions</text><text x="656" y="181" fill="#e2e8f0" font-size="8">results · approvals · evaluations</text><text x="656" y="198" fill="#e2e8f0" font-size="8">alerts · learnings · costs</text><text x="656" y="215" fill="#e2e8f0" font-size="8">heartbeats · toolConnections</text></g>
+<g><rect x="640" y="245" width="225" height="125" rx="8" fill="#0f172a"/><rect x="640" y="245" width="225" height="125" rx="8" fill="rgba(8,51,68,.35)" stroke="#22d3ee" stroke-width="2"/><text x="656" y="270" fill="#22d3ee" font-size="11" font-weight="700">Projections SEO (3)</text><text x="656" y="295" fill="#e2e8f0" font-size="9">contentItems</text><text x="755" y="295" fill="#94a3b8" font-size="8">pipeline / slug / step</text><text x="656" y="320" fill="#e2e8f0" font-size="9">weeklySnapshots</text><text x="755" y="320" fill="#94a3b8" font-size="8">GSC + leads + ops</text><text x="656" y="345" fill="#e2e8f0" font-size="9">gateEvents</text><text x="755" y="345" fill="#94a3b8" font-size="8">approve/reject/rework</text></g>
+<g><rect x="640" y="390" width="225" height="115" rx="8" fill="#0f172a"/><rect x="640" y="390" width="225" height="115" rx="8" fill="rgba(136,19,55,.25)" stroke="#fb7185" stroke-width="2"/><text x="656" y="415" fill="#fb7185" font-size="11" font-weight="700">Garde-fous</text><text x="656" y="440" fill="#e2e8f0" font-size="8">append-only: events · decisions · gates</text><text x="656" y="458" fill="#e2e8f0" font-size="8">aucune mutation destructive</text><text x="656" y="476" fill="#e2e8f0" font-size="8">pas PII CRM · secrets · raw GSC · articles</text><text x="656" y="494" fill="#e2e8f0" font-size="8">rétention 12 / 24 / 36 mois</text></g>
+<!-- outputs -->
+<g><rect x="920" y="305" width="160" height="90" rx="8" fill="#0f172a"/><rect x="920" y="305" width="160" height="90" rx="8" fill="rgba(120,53,15,.3)" stroke="#fbbf24" stroke-width="2"/><text x="938" y="332" fill="#fbbf24" font-size="11" font-weight="700">Monitor / Report</text><text x="938" y="355" fill="#94a3b8" font-size="8">Slack hebdo</text><text x="938" y="373" fill="#94a3b8" font-size="8">audit 7 / 30 / 90 jours</text></g>
+<g><rect x="920" y="415" width="160" height="95" rx="8" fill="#0f172a"/><rect x="920" y="415" width="160" height="95" rx="8" fill="rgba(6,78,59,.35)" stroke="#34d399" stroke-width="2"/><text x="938" y="442" fill="#34d399" font-size="11" font-weight="700">Hermes Learn</text><text x="938" y="465" fill="#e2e8f0" font-size="8">skill_manage → procédures</text><text x="938" y="482" fill="#e2e8f0" font-size="8">memory → contexte durable</text><text x="938" y="499" fill="#94a3b8" font-size="8">pattern prouvé / correction explicite</text></g>
+<!-- lifecycle strip -->
+<rect x="35" y="555" width="1035" height="65" rx="9" fill="#0f172a" stroke="#334155"/>
+<text x="55" y="579" fill="#22d3ee" font-size="10" font-weight="700">DESIGN</text><text x="55" y="598" fill="#34d399" font-size="8">✓ actuel · lecture fichiers</text>
+<text x="255" y="579" fill="#22d3ee" font-size="10" font-weight="700">CONNECTION CHECK</text><text x="255" y="598" fill="#94a3b8" font-size="8">schema read-only</text>
+<text x="500" y="579" fill="#fbbf24" font-size="10" font-weight="700">SETUP + APPROVAL</text><text x="500" y="598" fill="#94a3b8" font-size="8">create tables + test write réversible</text>
+<text x="785" y="579" fill="#a78bfa" font-size="10" font-weight="700">RUNTIME</text><text x="785" y="598" fill="#94a3b8" font-size="8">RW loop store · sources externes read-only</text>
+</svg></div>
+
+<div class="section"><h2>1. Décision d’architecture</h2><div class="grid">
+<div class="card"><h3 class="ok">Convex indépendant</h3><ul><li>Projet SEO séparé de Velora</li><li>Isolation logique par <code>loopId</code></li><li>Production/concurrence prêtes</li></ul></div>
+<div class="card"><h3>Sources de vérité</h3><ul><li>Velora = leads</li><li>OpenSEO/GSC = search</li><li>Repo ECOI = corps des articles</li></ul></div>
+<div class="card"><h3>Loop store</h3><ul><li>État + traces + décisions</li><li>Scores + approvals + learnings</li><li>Snapshots agrégés seulement</li></ul></div>
+</div></div>
+
+<div class="section"><h2>2. Ce que les 18 entités permettent</h2><table><tr><th>Groupe</th><th>Entités</th><th>Pourquoi</th></tr>
+<tr><td>Identité</td><td><code>loops, loopVersions</code></td><td>Versionner le contrat du loop</td></tr>
+<tr><td>Exécution</td><td><code>runs, events, observations, decisions, actions, actionResults</code></td><td>Reconstruire exactement chaque run</td></tr>
+<tr><td>Gouvernance</td><td><code>approvals, evaluations, alerts, costs, heartbeats, toolConnections</code></td><td>Gates, qualité, santé, coût et connexions</td></tr>
+<tr><td>Apprentissage</td><td><code>learnings</code></td><td>Patterns prouvés avant skill_manage / memory</td></tr>
+<tr><td>SEO</td><td><code>contentItems, weeklySnapshots, gateEvents</code></td><td>Pipeline article, mesure hebdo, feedback Erwan</td></tr></table></div>
+
+<div class="section"><h2>3. Sécurité, rétention et permissions</h2><div class="grid">
+<div class="card"><h3 class="no">Jamais stocké</h3><ul><li>Contacts / PII complets Velora</li><li>Tokens ou secrets</li><li>Exports GSC bruts illimités</li><li>Corps articles (repo = SoT)</li></ul></div>
+<div class="card"><h3 class="warn">Rétention</h3><ul><li>Heartbeats/coûts : 12 mois</li><li>Events/décisions/gates/learn : 24 mois</li><li>Snapshots/items publiés : 36 mois</li></ul></div>
+<div class="card"><h3>Least privilege</h3><ul><li>Maintenant : fichiers seulement</li><li>Check : schema read-only</li><li>Setup : write après approval</li><li>Runtime : loop store uniquement</li></ul></div>
+</div></div>
+
+<div class="section"><h2>4. Gate de validation</h2><table><tr><th>À valider</th><th>Proposition</th></tr>
+<tr><td>Provider</td><td>Convex</td></tr><tr><td>Isolation</td><td>Projet SEO indépendant de Velora</td></tr><tr><td>Modèle</td><td>15 tables canonique + 3 projections SEO</td></tr><tr><td>Learn</td><td>Loop store → pattern → skill_manage / memory</td></tr><tr><td>Étape suivante</td><td><code>loop-connection-check</code> en lecture seule uniquement après APPROVE storage design</td></tr></table></div>
+<p class="foot">Artifacts: storage.yaml · storage-blueprint.json · storage-design-blueprint.html · aucune connexion/provision/écriture effectuée</p>
+</div></body></html>
