@@ -1,0 +1,99 @@
+# loop-idea discovery template (domain-agnostic)
+# Copy to: {workspace}/loops/{loop_id}/discovery.yaml
+# Fill during discovery. Prefer verified tool evidence over claims.
+schemaVersion: 1
+loop_id: replace-with-kebab-id
+discovered_at: "YYYY-MM-DDTHH:MM:SS.000Z"
+owner: ""
+operator: ""
+domain: "" # e.g. seo, sales, support, finance — free text
+
+problem:
+  summary: ""
+  recurring: true
+  frequency_target: ""
+  cost_of_inaction: ""
+  primary_bottleneck_observed: "" # from last real run, not assumed
+
+present:
+  participants: []
+  systems: []
+  current_workaround: ""
+  example_artifact: "" # URL, ticket id, path, row id
+
+outcome:
+  north_star:
+    metric: ""
+    definition: ""
+    source_of_truth: ""
+  success_minimum: ""
+  stretch_target: ""
+  horizon_days: 90
+  autonomy_target: "" # trajectory + gate-removal intent, not v1 scope
+
+baseline_observed:
+  method: "" # e.g. API sample, export, dashboard screenshot+count
+  value: null # number | 0 | unknown
+  observed_at: ""
+  sample_notes: ""
+  access_checks: []
+  # access_checks item shape:
+  # - system: name
+  #   status: verified | failed | not_attempted
+  #   evidence: short note / query summary
+
+decisions_and_gates:
+  human_gates_v1: []
+  autonomous_between_gates: []
+  gate_removal_criteria: []
+  forbidden_without_human: []
+
+measurement_framework:
+  principle: cannot improve what is not measured
+  leading_metrics: []
+  lagging_metrics: []
+  cadences:
+    ops_pulse: { frequency: weekly, destination: "", contents: [] }
+    strategy: { frequency: monthly, contents: [] }
+    verdict: { frequency: quarterly, contents: [] }
+  loop_store:
+    needed: true
+    independent_of_sot: true
+    rationale: ""
+    proposed_entities:
+      - work_items_or_pipeline_state
+      - periodic_snapshots
+      - gate_events
+    do_not_duplicate: [] # SoT systems
+
+feedback:
+  signals: []
+  delay_days_business: null
+  delay_days_ops: null
+  attribution_risk: ""
+
+controls:
+  approval_policy: ""
+  budget_notes: ""
+  stop_conditions: []
+  escalation: ""
+  rollback: ""
+
+fit:
+  narrowest_wedge: ""
+  recommended_direction: ""
+  alternatives_considered: []
+  non_loop_option: ""
+  why_loop_or_not: ""
+  reversibility: ""
+  open_risks: []
+
+evidence_quality:
+  observed_facts: []
+  assumptions: []
+
+exit:
+  outcome: continue # continue | block | reframe | abandon
+  next_skill: loop-qualify # or null
+  blocking_for_later: []
+  notes: ""

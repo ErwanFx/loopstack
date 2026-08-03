@@ -1,4 +1,4 @@
 interface:
   display_name: "Loop Idea Interview"
-  short_description: "Explore a business process as a loop"
-  default_prompt: "Use $loop-idea to interview me about this automation idea."
+  short_description: "Evidence-led discovery before choosing a loop"
+  default_prompt: "Use $loop-idea to interview me about this process. One question at a time, verify systems, and write discovery.yaml."
