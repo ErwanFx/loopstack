@@ -1,4 +1,4 @@
 interface:
   display_name: "Design Loop"
   short_description: "Blueprint HTML (T→O→E→A→L→D) + YAML; owner approves before next skill"
-  default_prompt: "Use $loop-design. Build ai-loop-blueprint.html with architecture-diagram (Target→Observe→Evaluate→Act→Learn→Decide), write the YAML package, present the HTML, and wait for my APPROVE before loop-storage-design."
+  default_prompt: "Use $loop-design. Build ai-loop-blueprint.html with architecture-diagram (Target→Observe→Evaluate→Act→Learn→Decide), include mandatory Hermes native learning in Learn (loop-store evidence + skill_manage + durable memory + anti-noise), map runtime skills, write the YAML package, present the HTML, and wait for my APPROVE before loop-storage-design."
