@@ -1,4 +1,4 @@
 interface:
   display_name: "Design Loop"
-  short_description: "Design a measurable and controlled loop"
-  default_prompt: "Use $loop-design to turn the qualified process into a loop design."
+  short_description: "Blueprint HTML (T→O→E→A→L→D) + YAML; owner approves before next skill"
+  default_prompt: "Use $loop-design. Build ai-loop-blueprint.html with architecture-diagram (Target→Observe→Evaluate→Act→Learn→Decide), write the YAML package, present the HTML, and wait for my APPROVE before loop-storage-design."

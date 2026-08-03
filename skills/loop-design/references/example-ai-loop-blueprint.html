@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ECOI SEO Content Engine — AI Loop Blueprint</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #020617;
+    --card: #0f172a;
+    --grid: #1e293b;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --cyan: #22d3ee;
+    --emerald: #34d399;
+    --violet: #a78bfa;
+    --amber: #fbbf24;
+    --rose: #fb7185;
+    --orange: #fb923c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.45;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 20px 48px; }
+  header h1 {
+    font-size: 18px; margin: 0 0 6px; letter-spacing: 0.02em;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--emerald);
+    box-shadow: 0 0 0 0 rgba(52,211,153,.7);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(52,211,153,.55); }
+    70% { box-shadow: 0 0 0 10px rgba(52,211,153,0); }
+    100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+  }
+  header p { margin: 0; color: var(--muted); font-size: 12px; }
+  .badge {
+    display: inline-block; margin-top: 12px; padding: 4px 10px;
+    border: 1px solid #334155; border-radius: 999px; color: var(--amber);
+    font-size: 10px; text-transform: uppercase; letter-spacing: .08em;
+  }
+  .panel {
+    margin-top: 20px; background: var(--card); border: 1px solid #1e293b;
+    border-radius: 14px; padding: 16px; overflow-x: auto;
+  }
+  svg { display: block; width: 100%; height: auto; min-width: 920px; }
+  .section { margin-top: 28px; }
+  .section h2 {
+    font-size: 13px; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--cyan); margin: 0 0 12px; border-bottom: 1px solid #1e293b;
+    padding-bottom: 8px;
+  }
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .card {
+    background: #0b1220; border: 1px solid #1e293b; border-radius: 12px;
+    padding: 14px 14px 12px;
+  }
+  .card h3 {
+    margin: 0 0 8px; font-size: 12px; display: flex; gap: 8px; align-items: center;
+  }
+  .card ul { margin: 0; padding-left: 16px; color: var(--muted); font-size: 11px; }
+  .card li { margin: 4px 0; }
+  .pill {
+    width: 8px; height: 8px; border-radius: 2px; display: inline-block;
+  }
+  .t-target { background: var(--amber); }
+  .t-observe { background: var(--cyan); }
+  .t-evaluate { background: var(--violet); }
+  .t-act { background: var(--emerald); }
+  .t-learn { background: var(--orange); }
+  .t-decide { background: var(--rose); }
+  table {
+    width: 100%; border-collapse: collapse; font-size: 11px; color: var(--muted);
+  }
+  th, td {
+    border: 1px solid #1e293b; padding: 8px 10px; text-align: left; vertical-align: top;
+  }
+  th { color: var(--text); background: #0b1220; }
+  .foot { margin-top: 24px; color: #64748b; font-size: 10px; }
+  code { color: #cbd5e1; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1><span class="dot"></span> ECOI SEO Content Engine — AI Loop</h1>
+      <p>loop_id: ecoi-seo-content · draft design · crons OFF · activation blockers tracked</p>
+      <span class="badge">Target → Observe → Evaluate → Act → Learn → Decide</span>
+    </header>
+
+    <div class="panel">
+      <svg viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AI Loop diagram">
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+          </pattern>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+          </marker>
+          <marker id="arrow-rose" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#fb7185"/>
+          </marker>
+          <marker id="arrow-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#fbbf24"/>
+          </marker>
+        </defs>
+
+        <rect width="1000" height="520" fill="#020617"/>
+        <rect width="1000" height="520" fill="url(#grid)"/>
+
+        <!-- cycle arrows (behind boxes) -->
+        <path d="M 250 110 H 430" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+        <path d="M 570 110 H 750" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+        <path d="M 830 150 V 230" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+        <path d="M 750 270 H 570" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+        <path d="M 430 270 H 250" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+        <path d="M 170 230 V 150" stroke="#fb7185" stroke-width="1.5" fill="none" marker-end="url(#arrow-rose)"/>
+        <!-- learn feedback into evaluate/target -->
+        <path d="M 500 310 V 360" stroke="#fb923c" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow)"/>
+        <path d="M 500 420 V 455 H 170 V 310" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="5 4" fill="none" marker-end="url(#arrow-amber)"/>
+
+        <!-- TARGET -->
+        <rect x="90" y="70" width="160" height="80" rx="6" fill="#0f172a"/>
+        <rect x="90" y="70" width="160" height="80" rx="6" fill="rgba(120,53,15,0.35)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="170" y="98" text-anchor="middle" fill="#fbbf24" font-size="12" font-family="JetBrains Mono, monospace" font-weight="700">1. TARGET</text>
+        <text x="170" y="118" text-anchor="middle" fill="#e2e8f0" font-size="9" font-family="JetBrains Mono, monospace">10 leads organo/mois</text>
+        <text x="170" y="132" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="JetBrains Mono, monospace">horizon 90j · 1 contenu/sem</text>
+
+        <!-- OBSERVE -->
+        <rect x="410" y="70" width="160" height="80" rx="6" fill="#0f172a"/>
+        <rect x="410" y="70" width="160" height="80" rx="6" fill="rgba(8,51,68,0.45)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="490" y="98" text-anchor="middle" fill="#22d3ee" font-size="12" font-family="JetBrains Mono, monospace" font-weight="700">2. OBSERVE</text>
+        <text x="490" y="118" text-anchor="middle" fill="#e2e8f0" font-size="9" font-family="JetBrains Mono, monospace">GSC · Velora · pipeline</text>
+        <text x="490" y="132" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="JetBrains Mono, monospace">gates queue · crédits OpenSEO</text>
+
+        <!-- EVALUATE -->
+        <rect x="730" y="70" width="160" height="80" rx="6" fill="#0f172a"/>
+        <rect x="730" y="70" width="160" height="80" rx="6" fill="rgba(76,29,149,0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="810" y="98" text-anchor="middle" fill="#a78bfa" font-size="12" font-family="JetBrains Mono, monospace" font-weight="700">3. EVALUATE</text>
+        <text x="810" y="118" text-anchor="middle" fill="#e2e8f0" font-size="9" font-family="JetBrains Mono, monospace">gap leads + ops health</text>
+        <text x="810" y="132" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="JetBrains Mono, monospace">rubric QA · policy checks</text>
+
+        <!-- ACT -->
+        <rect x="730" y="230" width="160" height="80" rx="6" fill="#0f172a"/>
+        <rect x="730" y="230" width="160" height="80" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="810" y="258" text-anchor="middle" fill="#34d399" font-size="12" font-family="JetBrains Mono, monospace" font-weight="700">4. ACT</text>
+        <text x="810" y="278" text-anchor="middle" fill="#e2e8f0" font-size="9" font-family="JetBrains Mono, monospace">08→21 · report · patch</text>
+        <text x="810" y="292" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="JetBrains Mono, monospace">borné · entre gates</text>
+
+        <!-- LEARN -->
+        <rect x="410" y="230" width="160" height="80" rx="6" fill="#0f172a"/>
+        <rect x="410" y="230" width="160" height="80" rx="6" fill="rgba(251,146,60,0.25)" stroke="#fb923c" stroke-width="1.5"/>
+        <text x="490" y="258" text-anchor="middle" fill="#fb923c" font-size="12" font-family="JetBrains Mono, monospace" font-weight="700">5. LEARN</text>
+        <text x="490" y="278" text-anchor="middle" fill="#e2e8f0" font-size="9" font-family="JetBrains Mono, monospace">traces · gate_events</text>
+        <text x="490" y="292" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="JetBrains Mono, monospace">snapshots · skill patches</text>
+
+        <!-- DECIDE -->
+        <rect x="90" y="230" width="160" height="80" rx="6" fill="#0f172a"/>
+        <rect x="90" y="230" width="160" height="80" rx="6" fill="rgba(136,19,55,0.4)" stroke="#fb7185" stroke-width="1.5"/>
+        <text x="170" y="258" text-anchor="middle" fill="#fb7185" font-size="12" font-family="JetBrains Mono, monospace" font-weight="700">6. DECIDE</text>
+        <text x="170" y="278" text-anchor="middle" fill="#e2e8f0" font-size="9" font-family="JetBrains Mono, monospace">continue · stop</text>
+        <text x="170" y="292" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="JetBrains Mono, monospace">escalate · change strategy</text>
+
+        <!-- human gates strip -->
+        <rect x="90" y="360" width="800" height="54" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1" stroke-dasharray="6 4"/>
+        <text x="110" y="382" fill="#e2e8f0" font-size="10" font-family="JetBrains Mono, monospace" font-weight="700">HUMAN GATES (Erwan)</text>
+        <text x="110" y="400" fill="#94a3b8" font-size="9" font-family="JetBrains Mono, monospace">1 sujet  →  2 draft + preview HTML/visuel  →  3 publish/deploy   · timeout 7j · jamais skip v1</text>
+
+        <!-- store -->
+        <rect x="420" y="455" width="320" height="40" rx="6" fill="#0f172a"/>
+        <rect x="420" y="455" width="320" height="40" rx="6" fill="rgba(76,29,149,0.25)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="580" y="480" text-anchor="middle" fill="#a78bfa" font-size="10" font-family="JetBrains Mono, monospace">LOOP STORE (Convex indépendant) · content_items · weekly_snapshots · gate_events</text>
+
+        <text x="500" y="40" text-anchor="middle" fill="#64748b" font-size="10" font-family="JetBrains Mono, monospace">boucle hebdo · feedback business ~90j · leading GSC/ops ~7j</text>
+      </svg>
+    </div>
+
+    <div class="section">
+      <h2>1. Target — what good looks like</h2>
+      <div class="grid">
+        <div class="card">
+          <h3><span class="pill t-target"></span> Business</h3>
+          <ul>
+            <li><strong>North star:</strong> leads simulateur organo / mois</li>
+            <li><strong>Définition:</strong> Velora <code>utm_source=site_web</code> + <code>utm_medium=organic</code> (+ content=slug)</li>
+            <li><strong>Stretch 90j:</strong> 10 / mois</li>
+            <li><strong>Baseline:</strong> 0 (sample 500 leads récents)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3><span class="pill t-target"></span> Ops / qualité</h3>
+          <ul>
+            <li>1 contenu solide / semaine (process 21, no light-skip 12–15)</li>
+            <li>Report lundi → Slack C0BLRUTQJT1</li>
+            <li>Taux d’approbation draft↑ · rework visuel↓</li>
+            <li>Autonomie progressive (gates retirables avec preuves)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3><span class="pill t-target"></span> Leading (pas la vérité business)</h3>
+          <ul>
+            <li>GSC: clics, impressions, CTR, position (URLs publiées)</li>
+            <li>Publish on-time</li>
+            <li>Items stuck in review</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>2. Observe — reality sources</h2>
+      <table>
+        <tr><th>Source</th><th>Quoi</th><th>Statut design</th></tr>
+        <tr><td>Velora (Convex spotted-horse-257)</td><td>count leads organo UTM</td><td>read OK · filtre organo encore fragile</td></tr>
+        <tr><td>GSC via OpenSEO</td><td>perf search sc-domain:electroconceptoi.com</td><td>connected</td></tr>
+        <tr><td>Loop store (à créer)</td><td>pipeline, snapshots, gate_events</td><td>missing (indépendant Velora)</td></tr>
+        <tr><td>content-pipe + repo ecoi-website</td><td>état dossiers / code page</td><td>connected</td></tr>
+        <tr><td>Gates humains</td><td>queue approve/reject + raisons (visuel++)</td><td>process défini</td></tr>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>3. Evaluate — gap & jugements</h2>
+      <div class="grid">
+        <div class="card">
+          <h3><span class="pill t-evaluate"></span> Métriques</h3>
+          <ul>
+            <li>Gap business = 10 − leads_organo_mois (auj. ≈ 10)</li>
+            <li>Gap ops = retards publish, rework visuel, items bloqués gate</li>
+            <li>GSC Δ 7j sur URLs du loop</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3><span class="pill t-evaluate"></span> Rubrics / checks</h3>
+          <ul>
+            <li>QA article: SEO+GEO+UTM+claims datés</li>
+            <li>QA visuelle: alignement, images, preview≈prod</li>
+            <li>Policy: 974 only, pas KAP, pas € orphelins</li>
+            <li>Gate: jamais skip humain v1</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3><span class="pill t-evaluate"></span> Juge</h3>
+          <ul>
+            <li>Agent: scoring / checklist entre gates</li>
+            <li>Erwan: sujet, draft+preview, publish</li>
+            <li>Déterministe: UTM présents? step 12–15 complete?</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>4. Act — actions bornées</h2>
+      <div class="grid">
+        <div class="card">
+          <h3><span class="pill t-act"></span> Contenu (1 prioritaire/sem)</h3>
+          <ul>
+            <li>Research 01–07 si refresh dû</li>
+            <li>Draft pack 08–11 → gate</li>
+            <li>Après approve: 12–15 complets</li>
+            <li>16–18 intégration code (pas deploy)</li>
+            <li>Après publish gate: 19–21</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3><span class="pill t-act"></span> Mesure / notify</h3>
+          <ul>
+            <li>Snapshot hebdo GSC+Velora+pipeline</li>
+            <li>Report Slack lundi</li>
+            <li>Escalade si gate > 7j</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3><span class="pill t-act"></span> Interdit</h3>
+          <ul>
+            <li>Publish/deploy sans gate</li>
+            <li>Light-skip 12–15</li>
+            <li>KAP / hors 974 / € non datés</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>5. Learn — traces & patterns</h2>
+      <table>
+        <tr><th>Trace</th><th>Où</th><th>Usage</th></tr>
+        <tr><td>content_items (slug, step, status, dates)</td><td>loop store</td><td>savoir où on en est</td></tr>
+        <tr><td>gate_events (decision, reasons, actor)</td><td>loop store</td><td>rework visuel → patch ecoi-seo</td></tr>
+        <tr><td>weekly_snapshots</td><td>loop store</td><td>tendances même si API bouge</td></tr>
+        <tr><td>GSC URL @ 7/14/30/90j</td><td>OpenSEO + snapshot</td><td>keep / improve / kill</td></tr>
+        <tr><td>leads par utm_content</td><td>Velora</td><td>quel contenu convertit</td></tr>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>6. Decide — continue / stop / change / escalate</h2>
+      <div class="grid">
+        <div class="card">
+          <h3><span class="pill t-decide"></span> Continue</h3>
+          <ul>
+            <li>Finir l’item en cours avant d’en ouvrir un autre</li>
+            <li>Enchaîner l’étape suivante si checks OK</li>
+            <li>Boucler la semaine suivante</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3><span class="pill t-decide"></span> Stop / pause</h3>
+          <ul>
+            <li>Publish sans gate tenté</li>
+            <li>UTM pipeline cassé après “fix”</li>
+            <li>Rework visuel répété sans patch skill</li>
+            <li>Crédits OpenSEO dead sans fallback</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3><span class="pill t-decide"></span> Change strategy</h3>
+          <ul>
+            <li>Mensuel: keep / improve / kill sujets</li>
+            <li>90j: assouplir gate draft si preuves</li>
+            <li>Prioriser clusters GSC qui bougent</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3><span class="pill t-decide"></span> Escalate → Erwan</h3>
+          <ul>
+            <li>Gate ouverte > 7 jours</li>
+            <li>≥3 rejects visuels d’affilée</li>
+            <li>GSC vide 2 semaines</li>
+            <li>Ambiguïté policy / claims</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Run type d’une semaine (concret)</h2>
+      <table>
+        <tr><th>Quand</th><th>Qui</th><th>Quoi</th></tr>
+        <tr><td>Lun 08:00</td><td>Agent</td><td>Observe GSC+Velora+pipeline → snapshot → report Slack</td></tr>
+        <tr><td>Lun 09:00</td><td>Agent</td><td>Evaluate gap → Decide 1 action (finir en-cours ou démarrer sujet)</td></tr>
+        <tr><td>Semaine</td><td>Agent</td><td>Act 08–11 ou 12–15 ou 16–18 selon état</td></tr>
+        <tr><td>Gate</td><td>Erwan</td><td>Approve/reject sujet · draft+visuel · publish</td></tr>
+        <tr><td>Post-gate</td><td>Agent</td><td>Learn (gate_event) + Act suite ou patch skill</td></tr>
+        <tr><td>J+7/30/90</td><td>Agent</td><td>Evaluate perf URL + leads → Decide keep/improve/kill</td></tr>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>Activation (plus tard — ne bloque pas ta validation design)</h2>
+      <ul style="color:var(--muted); font-size:11px;">
+        <li>UTM organo simulateur → Velora E2E</li>
+        <li>Convex SEO indépendant connecté</li>
+        <li>1 report Slack test</li>
+        <li>Crons restent <code>enabled: false</code> jusqu’à readiness ready</li>
+      </ul>
+    </div>
+
+    <p class="foot">Fichiers: home/loops/ecoi-seo-content/design/* · Diagramme: ai-loop-blueprint.html · loopstack draft only</p>
+  </div>
+</body>
+</html>
