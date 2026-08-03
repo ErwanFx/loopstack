@@ -1,4 +1,4 @@
 interface:
   display_name: "Qualify Loop"
-  short_description: "Classify an automation opportunity"
-  default_prompt: "Use $loop-qualify to classify this process and test loop readiness."
+  short_description: "Classify system type; readiness blockers never block design"
+  default_prompt: "Use $loop-qualify to classify this process. If it is an AI Loop, run readiness but still hand off to loop-design — blockers are activation-only."
