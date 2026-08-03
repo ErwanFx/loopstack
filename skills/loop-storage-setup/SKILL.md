@@ -30,7 +30,25 @@ After approval:
 6. In **schema mode**, run `loopstack storage verify` and require `verified`.
 7. Record the connection and schema version in `storage.yaml` as appropriate.
 
+### Convex execution notes
+
+For Convex schema mode:
+
+1. Work in a loop-specific local directory and explicitly select the approved `team:project:deployment`; never rely on a deployment inherited from another project.
+2. Install `convex` and `typescript`, and ensure `convex/tsconfig.json` exists before requiring typecheck.
+3. Treat `npx convex codegen --init` as a **potential remote mutation**: despite its name, it may download state and upload functions/schema. Run it only after exact plan approval.
+4. After deployment, list remote tables read-only, compare them to the plan resources, then run a second idempotent `convex dev --once --typecheck enable`.
+5. Do not claim success from CLI exit alone; require Loopstack provisioning evidence verification with zero missing resources.
+
 The agent must never claim setup succeeded merely because a tool returned success. Claim success only from complete verification evidence. Never copy credentials into artifacts or logs.
+
+## Common pitfalls
+
+- Assuming `codegen --init` is local-only on Convex; it can synchronize remote schema/functions.
+- Running typecheck without a local TypeScript binary or `convex/tsconfig.json`.
+- Selecting a deployment in the plugin repository instead of a loop-specific isolated directory.
+- Verifying only table count while ignoring planned resource names and missing-resource checks.
+- Leaving alert tests as recurring jobs or routing a direct-channel alert back into the origin thread.
 
 ## Handoff
 
