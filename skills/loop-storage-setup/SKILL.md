@@ -54,6 +54,8 @@ The agent must never claim setup succeeded merely because a tool returned succes
 
 Verified setup proceeds to `loop-eric-review`. Failed or incomplete verification stops with blockers and recovery instructions.
 
+A successful final response must **explicitly present the next skill in prose**, explain its purpose in one sentence, and propose continuing. Do not leave the transition only inside YAML. If the user already authorized progression, continue immediately when the next step is non-mutating; otherwise ask: `Continuer avec loop-eric-review ?` Current-step approval does not silently authorize unrelated mutations in the next skill.
+
 ```yaml
 handoff:
   loop_id: seo-growth

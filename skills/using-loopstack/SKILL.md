@@ -20,6 +20,15 @@ Use deterministic commands from the repository root for validation. Treat declar
 
 ## Handoff
 
+Every lifecycle skill must write its machine handoff **and** surface the transition to the user. When `next_skill` is non-null, the final response must:
+
+1. name the next skill;
+2. explain its purpose in one sentence;
+3. propose continuing, or continue immediately if the user already authorized progression and the step is non-mutating;
+4. keep any new mutation behind its own approval boundary.
+
+Never hide the next step only in YAML. A current-step approval does not silently approve unrelated side effects in the next skill.
+
 Start `loop-idea`. Do not emit a later next skill for a new idea.
 
 ```yaml
