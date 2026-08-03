@@ -31,7 +31,7 @@ describe("loop lifecycle", () => {
   });
 
   it("reports invalid CLI transitions as JSON", () => {
-    const result = spawnSync("pnpm", ["loopstack", "transition", "--from", "designing", "--to", "active"], {
+    const result = spawnSync("node", ["--import", "tsx", "src/cli.ts", "transition", "--from", "designing", "--to", "active"], {
       encoding: "utf8",
     });
     expect(result.status).toBe(2);

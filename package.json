@@ -8,7 +8,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "check": "tsc --noEmit && vitest run",
+    "check": "tsc -p tsconfig.json && vitest run",
     "loopstack": "tsx src/cli.ts",
     "schema:export": "tsx scripts/export-schemas.ts"
   },

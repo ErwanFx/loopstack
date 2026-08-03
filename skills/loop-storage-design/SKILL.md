@@ -31,7 +31,7 @@ This skill **does not** connect, provision, create tables, test-write, or activa
    - lifecycle: design → connection check → approved setup → runtime.
 4. **Human visual gate is the exit.** Present the HTML and wait for explicit `APPROVE storage design`, changes, or reject.
 5. Do not hand off to `loop-connection-check` until approval.
-6. A missing connection does not block storage design; it is checked later.
+6. a missing native connection does not block storage design; it is checked later through the agent's native connection capability.
 7. Use the smallest durable store that can reconstruct every run and support monitoring. Avoid duplicating source-of-truth systems.
 8. Keep provider API calls out of this skill.
 

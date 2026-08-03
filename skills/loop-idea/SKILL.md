@@ -38,6 +38,7 @@ This skill is **domain-agnostic**. SEO, sales, ops, support, finance — same di
 2. Read [the discovery template](references/discovery.template.yaml) so you know the artifact shape you must fill.
 3. Establish business context, desired change, and why this matters **now**.
 4. Ask one question at a time; follow the rubric order loosely, not as a script.
+   Establish the **current workaround** and seek **direct observation** of the last real unit of work before proposing automation.
 5. When outcomes are vague, force: **definition → source of truth → current baseline → horizon → success minimum vs stretch**.
 6. When systems appear, **verify**:
    - Can this agent read them right now?

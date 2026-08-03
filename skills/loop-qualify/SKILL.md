@@ -37,13 +37,13 @@ Choose **exactly one** and give evidence:
 
 1. **AI Loop** — recurring decisions + bounded actions + measurable feedback + iteration
 2. **AI-assisted workflow** — humans drive; AI helps steps without a closed optimising cycle
-3. **Deterministic automation** — rules fully determine the output (prefer this when true)
-4. **On-demand agent task** — each run starts from a human request; no durable cadence/state needed
-5. **Monitoring or reporting system** — observe/alert only; no action closes the feedback cycle
-6. **Human SOP or approval process** — people execute; docs/checklists suffice
-7. **Data pipeline** — move/transform data; not an optimising decision loop
-8. **One-time project** — finite deliverable, not an operating loop
-9. **Multiple independent loops** — different owners, horizons, or objectives → decompose
+3. **deterministic automation** — rules fully determine the output (prefer this when true)
+4. **on-demand agent task** — each run starts from a human request; no durable cadence/state needed
+5. **monitoring or reporting system** — observe/alert only; no action closes the feedback cycle
+6. **human SOP or approval process** — people execute; docs/checklists suffice
+7. **data pipeline** — move/transform data; not an optimising decision loop
+8. **one-time project** — finite deliverable, not an operating loop
+9. **multiple independent loops requiring decomposition** — different owners, horizons, or objectives → decompose
 
 ### Preference order (simpler wins)
 
