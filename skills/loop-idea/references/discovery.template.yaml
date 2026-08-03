@@ -79,6 +79,14 @@ controls:
   escalation: ""
   rollback: ""
 
+# Operating skills inside the loop (NOT loop-idea/qualify/design/deploy lifecycle)
+runtime_skills:
+  always_on: []          # e.g. domain playbook, copywriting, humanizer, ai-seo
+  on_demand: []          # e.g. keyword-research, schema, seo-audit
+  phase_map: {}          # observe/evaluate/act_*/learn → [skills]
+  to_install: []         # hub/GitHub identifiers still missing
+  notes: ""              # quality bar: engaging copy + SEO + GEO/AEO
+
 fit:
   narrowest_wedge: ""
   recommended_direction: ""

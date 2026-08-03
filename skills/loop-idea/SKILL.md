@@ -46,8 +46,13 @@ This skill is **domain-agnostic**. SEO, sales, ops, support, finance — same di
 7. Identify owner, users, inputs, outputs, systems, permissions, risks, costs, feedback delay, and **human gates that must remain in v1**.
 8. Surface the **actual failure mode** of the last cycle (quality, latency, handoff, data, approvals…).
 9. Propose measurement cadences (ops pulse / strategy / verdict horizon) sized to feedback delay.
-10. Present ≥2 alternatives + non-loop option; recommend a **narrow wedge**.
-11. Write `discovery.yaml` + handoff under a stable loop workspace path.
+10. **Sketch the runtime skill map early** (operating skills only — not loopstack lifecycle):
+    - always-on skills for a normal unit of work;
+    - on-demand skills by phase (research, draft/copy, GEO-AEO/AIO, QA, integrate, measure);
+    - gaps to install later from hubs/GitHub if quality would suffer without them.
+    This draft is refined in `loop-design` (`skills.yaml` + blueprint Skills section) — discovery should not leave skill choice entirely to design.
+11. Present ≥2 alternatives + non-loop option; recommend a **narrow wedge**.
+12. Write `discovery.yaml` + handoff under a stable loop workspace path.
 
 ### Good probe patterns (pick one, then stop)
 
@@ -163,6 +168,7 @@ Validate handoff shape against the repo handoff schema when available.
 
 - [ ] Rubric areas covered or explicitly marked unknown/blocked
 - [ ] North-star metric has definition + SoT + baseline attempt (incl. verified 0)
+- [ ] Runtime skill map drafted (always-on / on-demand / gaps) — operating skills only
 - [ ] Named systems were access-checked with tool evidence when possible
 - [ ] Human gates v1 listed; autonomy trajectory separate from v1
 - [ ] Bottleneck from a real recent example recorded

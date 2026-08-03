@@ -81,6 +81,7 @@ Also define:
    - header: loop id, name, draft/not activated;
    - **SVG diagram** of the six stages as a closed loop (arrows), plus human-gates strip and loop-store/memory if any;
    - sections **1–6** matching Target → … → Decide with real content for this loop;
+   - a **Skills runtime** section (mandatory): always-on vs on-demand skills used *inside* operating runs — **not** loopstack lifecycle skills (`loop-idea`, `loop-design`, …). Include a phase→skills matrix (research / draft / GEO / QA / integrate / measure). Prefer carrying forward any skill map drafted in `loop-idea` discovery;
    - a “week type” or “run type” table (concrete timeline);
    - activation checklist (if readiness blocked) clearly labelled *does not block design approval*.
 
@@ -97,7 +98,7 @@ Under `{workspace}/loops/{loop_id}/design/`:
 | `ai-loop-blueprint.html` | **Owner validation artifact** |
 | `loop.yaml` | id, name, version, status=`designing`, target, current, triggers, feedback, approval |
 | `process.yaml` | six-box cycle detail + rhythms + states |
-| `skills.yaml` | orchestrator / required / forbidden / missing |
+| `skills.yaml` | **Runtime** skills only: always_on, on_demand, phase matrix, minimum viable pack (not loopstack lifecycle) |
 | `tools.yaml` | tools, modes, connection status |
 | `storage.yaml` | provider intent only (no provision) |
 | `approvals.yaml` | gates, timeouts, progressive autonomy |
@@ -168,6 +169,8 @@ handoff:
 8. **Copy-pasting example SEO HTML** for a non-SEO domain.
 9. **Treating activation readiness blockers as “cannot design.”**
 10. **Building HTML without loading `architecture-diagram`** (wrong visual system / one-off styles that drift).
+11. **Omitting the Skills runtime section** or listing only `loop-*` lifecycle skills instead of operating skills (copy, GEO, research, domain playbook).
+12. **Inventing skill names** not installed / not planned — map must match hub installs or explicit “to install”.
 
 ## Verification checklist
 
@@ -175,6 +178,7 @@ handoff:
 - [ ] HTML blueprint generated via **`architecture-diagram`** conventions
 - [ ] SVG shows closed loop + gates + memory/store
 - [ ] HTML sections mirror the six stages with concrete content
+- [ ] HTML includes **Skills runtime** (always-on / on-demand / phase matrix); `skills.yaml` matches
 - [ ] Declarative YAML package written; `loop.yaml` schema-valid when CLI available
 - [ ] Triggers default disabled / non-activating
 - [ ] Activation blockers listed as checklist only

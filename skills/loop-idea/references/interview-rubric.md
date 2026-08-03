@@ -15,6 +15,7 @@ One question at a time. Skip ahead only when the user already supplied solid evi
 | Measurement | Cadences (ops / strategy / verdict), leading vs lagging, loop-store need | How do we review weekly vs judge at horizon? |
 | Access | Verified read path for each SoT/leading system; sample pulled in-session | “Connected” is not proof — query it. |
 | Fit | Narrowest wedge, ≥2 alternatives incl. non-loop, reversibility, leverage | Smallest loop that could work? |
+| Runtime skills | Always-on + on-demand skills for operating runs (copy, GEO/AEO, research, QA…) — not lifecycle `loop-*` | What must the agent load each cycle? What is missing to install? |
 
 ## Anti-patterns (reject or reframe)
 
