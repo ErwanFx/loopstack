@@ -1,5 +1,6 @@
 {
   "name": "loopstack",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "bin": {
@@ -8,7 +9,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "check": "tsc -p tsconfig.json && vitest run",
+    "check": "tsc -p tsconfig.json && tsx scripts/check-schemas.ts && vitest run",
     "loopstack": "tsx src/cli.ts",
     "schema:export": "tsx scripts/export-schemas.ts"
   },

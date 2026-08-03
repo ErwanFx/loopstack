@@ -1,0 +1,4 @@
+interface:
+  display_name: "Discover Loop"
+  short_description: "Discover, classify, and check readiness in one flow"
+  default_prompt: "Use $loop-discover to gather evidence, qualify the process, run readiness, and continue automatically to design when appropriate."

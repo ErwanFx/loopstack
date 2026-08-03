@@ -1,0 +1,4 @@
+interface:
+  display_name: "Operate Loop"
+  short_description: "Inspect, monitor, debug, modify, and improve loops"
+  default_prompt: "Use $loop-operate to choose the correct internal operating protocol from evidence without exposing internal transitions."

@@ -1,4 +1,4 @@
 interface:
   display_name: "Plan Loop"
-  short_description: "Plan an approved loop implementation"
-  default_prompt: "Use $loop-plan to write the implementation plan and approval boundary."
+  short_description: "Write the exact versioned build plan and approval gate"
+  default_prompt: "Use $loop-plan to write a TDD implementation plan with exact mutations, hashes, tests, rollback, and a hard approval stop."

@@ -1,4 +1,4 @@
 interface:
-  display_name: "Loopstack Guide"
-  short_description: "Route any business process into Loopstack"
-  default_prompt: "Use $using-loopstack to decide how to automate this business process."
+  display_name: "Use Loopstack"
+  short_description: "Route work through six fluid Loopstack phases"
+  default_prompt: "Use $using-loopstack to resume or route this loop. Auto-chain completed non-blocked handoffs; stop only at real gates."

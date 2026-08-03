@@ -52,9 +52,9 @@ The agent must never claim setup succeeded merely because a tool returned succes
 
 ## Handoff
 
-Verified setup proceeds to `loop-eric-review`. Failed or incomplete verification stops with blockers and recovery instructions.
+In v2, verified setup returns control to the `loop-build` orchestrator, which continues implementation and QA. A bootstrap return to `loop-connection-check` is an internal verification branch. The legacy `loop-eric-review` handoff below remains documented only for v1 resume compatibility. Failed or incomplete verification stops with blockers and recovery instructions.
 
-A successful final response must **explicitly present the next skill in prose**, explain its purpose in one sentence, and propose continuing. Do not leave the transition only inside YAML. If the user already authorized progression, continue immediately when the next step is non-mutating; otherwise ask: `Continuer avec loop-eric-review ?` Current-step approval does not silently authorize unrelated mutations in the next skill.
+Do not ask the user to approve an internal protocol transition. Continue automatically within `loop-build` when the approved mutation is verified. Current-step approval still does not authorize unrelated mutations.
 
 ```yaml
 handoff:

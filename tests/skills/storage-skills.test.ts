@@ -1,42 +1,39 @@
 import { readFileSync } from "node:fs";
-import { parse } from "yaml";
 import { describe, expect, it } from "vitest";
 
-const routes = {
-  "loop-storage-design": "loop-connection-check",
-  "loop-connection-check": "loop-storage-setup",
-  "loop-storage-setup": "loop-eric-review",
-} as const;
+const protocol = (path: string) => readFileSync(path, "utf8");
 
-function readSkill(name: string) {
-  const markdown = readFileSync(`skills/${name}/SKILL.md`, "utf8");
-  const match = markdown.match(/^---\n([\s\S]*?)\n---\n/);
-  if (!match) throw new Error(`${name} has no frontmatter`);
-  return { markdown, frontmatter: parse(match[1]) as Record<string, string> };
-}
-
-describe("native storage workflow skills", () => {
-  for (const [name, next] of Object.entries(routes)) {
-    it(`${name} is valid and hands off to ${next}`, () => {
-      const { markdown, frontmatter } = readSkill(name);
-      expect(frontmatter.name).toBe(name);
-      expect(frontmatter.description).toMatch(/^Use when/);
-      expect(markdown).toContain("## Handoff");
-      expect(markdown).toContain(next);
-      expect(markdown.split("\n").length).toBeLessThan(500);
-    });
-  }
-
-  it("uses the agent native connection instead of an embedded API client", () => {
-    for (const name of Object.keys(routes)) {
-      expect(readSkill(name).markdown.toLowerCase()).toContain("native connection");
-    }
+describe("consolidated storage protocols", () => {
+  it("keeps storage design and connection checks inside loop-design", () => {
+    const design = protocol("skills/loop-design/SKILL.md");
+    expect(design).toContain("loop-storage-design/SKILL.md");
+    expect(design).toContain("loop-connection-check/SKILL.md");
+    expect(design).toContain("read-only connection check");
+    expect(design).toContain("Do not implement, provision storage");
   });
 
-  it("forces setup to stop before any mutation", () => {
-    const markdown = readSkill("loop-storage-setup").markdown;
-    expect(markdown).toContain("explicit approval");
-    expect(markdown).toContain("Do not create");
-    expect(markdown).toContain("never claim");
+  it("uses native connections rather than an embedded provider client", () => {
+    for (const path of [
+      "skills/loop-design/references/protocols/loop-storage-design/SKILL.md",
+      "skills/loop-design/references/protocols/loop-connection-check/SKILL.md",
+      "skills/loop-build/references/protocols/loop-storage-setup/SKILL.md",
+    ]) expect(protocol(path).toLowerCase()).toContain("native connection");
+  });
+
+  it("moves storage mutations to build and preserves exact approval", () => {
+    const build = protocol("skills/loop-build/SKILL.md");
+    const setup = protocol("skills/loop-build/references/protocols/loop-storage-setup/SKILL.md");
+    expect(build).toContain("matching plan hash");
+    expect(build).toContain("separate approval checkpoints");
+    expect(setup).toContain("explicit approval");
+    expect(setup).toContain("Do not create");
+    expect(setup).toContain("never claim");
+  });
+
+  it("keeps bootstrap and schema separately scoped", () => {
+    const setup = protocol("skills/loop-build/references/protocols/loop-storage-setup/SKILL.md");
+    expect(setup).toContain("Bootstrap mode");
+    expect(setup).toContain("Schema mode");
+    expect(setup).toContain("do not create tables");
   });
 });

@@ -1,59 +1,358 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
-  "properties": {
-    "artifacts": {
-      "items": {
-        "type": "string"
-      },
-      "type": "array"
-    },
-    "blocking_requirements": {
-      "items": {
-        "type": "string"
-      },
-      "type": "array"
-    },
-    "completed_skill": {
-      "maxLength": 64,
-      "minLength": 1,
-      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
-      "type": "string"
-    },
-    "loop_id": {
-      "maxLength": 64,
-      "minLength": 1,
-      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
-      "type": "string"
-    },
-    "next_skill": {
-      "anyOf": [
-        {
+  "anyOf": [
+    {
+      "additionalProperties": false,
+      "properties": {
+        "activation_allowed": {
+          "type": "boolean"
+        },
+        "artifact_hashes": {
+          "additionalProperties": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "propertyNames": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "artifacts": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "blocking_requirements": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "completed_skill": {
           "maxLength": 64,
           "minLength": 1,
           "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
           "type": "string"
         },
-        {
-          "type": "null"
+        "completed_workers": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "gate_evidence": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "approved_at": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                "type": "string"
+              },
+              "approved_by": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "artifact": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "artifact_hash": {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              "expires_at": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                "type": "string"
+              },
+              "gate": {
+                "enum": [
+                  "design-approval",
+                  "storage-approval",
+                  "plan-approval",
+                  "bootstrap-approval",
+                  "schema-approval",
+                  "qa-pass",
+                  "activation-approval"
+                ],
+                "type": "string"
+              },
+              "scope_hash": {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "gate",
+              "artifact",
+              "artifact_hash",
+              "scope_hash",
+              "approved_by",
+              "approved_at",
+              "expires_at"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "journey": {
+          "enum": [
+            "loop-discover",
+            "loop-design",
+            "loop-plan",
+            "loop-build",
+            "loop-launch",
+            "loop-operate"
+          ],
+          "type": "string"
+        },
+        "loop_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "bootstrap",
+            "schema"
+          ],
+          "type": "string"
+        },
+        "next_journey": {
+          "anyOf": [
+            {
+              "enum": [
+                "loop-discover",
+                "loop-design",
+                "loop-plan",
+                "loop-build",
+                "loop-launch",
+                "loop-operate"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "next_skill": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pending_gate": {
+          "anyOf": [
+            {
+              "enum": [
+                "design-approval",
+                "storage-approval",
+                "plan-approval",
+                "bootstrap-approval",
+                "schema-approval",
+                "qa-pass",
+                "activation-approval"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "planning_allowed": {
+          "type": "boolean"
+        },
+        "revision_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "route_version": {
+          "const": "v2",
+          "type": "string"
+        },
+        "scope_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "completed",
+            "blocked",
+            "awaiting-approval"
+          ],
+          "type": "string"
+        },
+        "substage": {
+          "minLength": 1,
+          "type": "string"
         }
-      ]
-    },
-    "status": {
-      "enum": [
-        "completed",
-        "blocked",
-        "awaiting-approval"
+      },
+      "required": [
+        "loop_id",
+        "completed_skill",
+        "status",
+        "artifacts",
+        "blocking_requirements",
+        "route_version",
+        "journey",
+        "substage",
+        "next_journey",
+        "completed_workers",
+        "pending_gate",
+        "scope_hash",
+        "artifact_hashes",
+        "gate_evidence"
       ],
-      "type": "string"
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "properties": {
+        "activation_allowed": {
+          "type": "boolean"
+        },
+        "artifacts": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "blocking_requirements": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "completed_skill": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "type": "string"
+        },
+        "completed_workers": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "journey": {
+          "enum": [
+            "loop-discover",
+            "loop-design",
+            "loop-plan",
+            "loop-build",
+            "loop-launch",
+            "loop-operate"
+          ],
+          "type": "string"
+        },
+        "loop_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "bootstrap",
+            "schema"
+          ],
+          "type": "string"
+        },
+        "next_journey": {
+          "anyOf": [
+            {
+              "enum": [
+                "loop-discover",
+                "loop-design",
+                "loop-plan",
+                "loop-build",
+                "loop-launch",
+                "loop-operate"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "next_skill": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pending_gate": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "planning_allowed": {
+          "type": "boolean"
+        },
+        "revision_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "route_version": {
+          "const": "v1",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "completed",
+            "blocked",
+            "awaiting-approval"
+          ],
+          "type": "string"
+        },
+        "substage": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "loop_id",
+        "completed_skill",
+        "status",
+        "artifacts",
+        "blocking_requirements"
+      ],
+      "type": "object"
     }
-  },
-  "required": [
-    "loop_id",
-    "completed_skill",
-    "status",
-    "artifacts",
-    "blocking_requirements"
-  ],
-  "type": "object"
+  ]
 }

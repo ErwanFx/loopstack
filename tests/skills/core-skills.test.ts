@@ -2,13 +2,11 @@ import { readFileSync } from "node:fs";
 import { parse } from "yaml";
 import { describe, expect, it } from "vitest";
 
-const routes: Record<string, string[]> = {
-  "using-loopstack": ["loop-idea"],
-  "loop-idea": ["loop-qualify"],
-  "loop-qualify": ["loop-design"],
-  "loop-design": ["loop-storage-design"],
-  "loop-eric-review": ["loop-plan", "loop-design"],
-  "loop-plan": ["loop-implement"],
+const publicRoutes: Record<string, string[]> = {
+  "using-loopstack": ["loop-discover"],
+  "loop-discover": ["loop-design"],
+  "loop-design": ["loop-plan"],
+  "loop-plan": ["loop-build"],
 };
 
 function readSkill(name: string): { frontmatter: Record<string, string>; markdown: string } {
@@ -18,28 +16,33 @@ function readSkill(name: string): { frontmatter: Record<string, string>; markdow
   return { frontmatter: parse(match[1]) as Record<string, string>, markdown };
 }
 
-describe("core workflow skills", () => {
-  for (const [directoryName, nextSkills] of Object.entries(routes)) {
+function readProtocol(path: string) {
+  return readFileSync(path, "utf8");
+}
+
+describe("core consolidated workflow skills", () => {
+  for (const [directoryName, nextSkills] of Object.entries(publicRoutes)) {
     it(`${directoryName} is concise, discoverable, and routed`, () => {
       const { frontmatter, markdown } = readSkill(directoryName);
       expect(frontmatter.name).toBe(directoryName);
       expect(frontmatter.description).toMatch(/^Use when/);
       expect(frontmatter.description.length).toBeLessThanOrEqual(1024);
-      expect(markdown.split("\n").length).toBeLessThan(500);
+      expect(markdown.split("\n").length).toBeLessThan(260);
       expect(markdown).toContain("## Handoff");
       for (const nextSkill of nextSkills) expect(markdown).toContain(nextSkill);
     });
   }
 
-  it("keeps the interview adaptive and evidence-led", () => {
-    const { markdown } = readSkill("loop-idea");
-    expect(markdown).toContain("one question at a time");
-    expect(markdown).toContain("current workaround");
-    expect(markdown).toContain("direct observation");
+  it("keeps discovery adaptive and evidence-led behind one public phase", () => {
+    const discover = readSkill("loop-discover").markdown;
+    const protocol = readProtocol("skills/loop-discover/references/protocols/loop-idea/SKILL.md");
+    expect(discover).toContain("Ask one question at a time");
+    expect(protocol).toContain("current workaround");
+    expect(protocol).toContain("direct observation");
   });
 
-  it("distinguishes AI loops from eight alternatives", () => {
-    const { markdown } = readSkill("loop-qualify");
+  it("keeps all nine classification alternatives in the internal protocol", () => {
+    const protocol = readProtocol("skills/loop-discover/references/protocols/loop-qualify/SKILL.md");
     for (const classification of [
       "AI Loop",
       "AI-assisted workflow",
@@ -50,20 +53,22 @@ describe("core workflow skills", () => {
       "data pipeline",
       "one-time project",
       "multiple independent loops requiring decomposition",
-    ]) expect(markdown).toContain(classification);
+    ]) expect(protocol).toContain(classification);
   });
 
-  it("never lets Eric review scoring bypass blockers", () => {
-    const { markdown } = readSkill("loop-eric-review");
-    expect(markdown).toContain("target / current / gap");
-    expect(markdown).toContain("never override a blocker");
-    expect(markdown).toContain("Design verdict vs activation readiness");
-    expect(markdown).toContain("Passing the review must never clear or hide a blocker");
+  it("integrates critical review without letting scoring bypass blockers", () => {
+    const design = readSkill("loop-design").markdown;
+    const protocol = readProtocol("skills/loop-design/references/protocols/loop-eric-review/SKILL.md");
+    expect(design).toContain("Integrated critical review");
+    expect(protocol).toContain("target / current / gap");
+    expect(protocol).toContain("never override a blocker");
+    expect(protocol).toContain("Design verdict vs activation readiness");
   });
 
-  it("stops planning at explicit approval", () => {
-    const { markdown } = readSkill("loop-plan");
+  it("stops planning at explicit approval then routes to build", () => {
+    const markdown = readSkill("loop-plan").markdown;
     expect(markdown).toContain("explicit approval");
     expect(markdown).toContain("Do not implement");
+    expect(markdown).toContain("next_skill: loop-build");
   });
 });

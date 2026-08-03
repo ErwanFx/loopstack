@@ -1,63 +1,48 @@
 import { readFileSync } from "node:fs";
-import { parse } from "yaml";
 import { describe, expect, it } from "vitest";
 
-const routes: Record<string, string[]> = {
-  "loop-implement": ["loop-qa"],
-  "loop-qa": ["loop-deploy", "loop-debug"],
-  "loop-deploy": ["loop-monitor"],
-  "loop-monitor": ["loop-improve", "loop-modify", "loop-debug"],
-  "loop-list": ["loop-show"],
-  "loop-show": ["loop-monitor"],
-  "loop-modify": ["loop-plan"],
-  "loop-debug": ["loop-plan"],
-  "loop-improve": ["loop-plan"],
-};
+const read = (path: string) => readFileSync(path, "utf8");
 
-function readSkill(name: string) {
-  const markdown = readFileSync(`skills/${name}/SKILL.md`, "utf8");
-  const match = markdown.match(/^---\n([\s\S]*?)\n---\n/);
-  if (!match) throw new Error(`${name} has no frontmatter`);
-  return { markdown, frontmatter: parse(match[1]) as Record<string, string> };
-}
-
-describe("operations skills", () => {
-  for (const [name, nextSkills] of Object.entries(routes)) {
-    it(`${name} is routed and concise`, () => {
-      const { markdown, frontmatter } = readSkill(name);
-      expect(frontmatter.name).toBe(name);
-      expect(frontmatter.description).toMatch(/^Use when/);
-      expect(markdown).toContain("## Handoff");
-      for (const next of nextSkills) expect(markdown).toContain(next);
-      expect(markdown.split("\n").length).toBeLessThan(500);
-    });
-  }
-
-  it("requires implementation to match the approved plan hash", () => {
-    expect(readSkill("loop-implement").markdown).toContain("matching plan hash");
+describe("consolidated build, launch, and operate workflows", () => {
+  it("requires build to match the approved plan hash and run QA automatically", () => {
+    const build = read("skills/loop-build/SKILL.md");
+    expect(build).toContain("matching plan hash");
+    expect(build).toContain("run the failing test");
+    expect(build).toContain("Run QA automatically");
+    expect(build).toContain("machine-readable QA");
+    expect(build).toContain("next_skill: loop-launch");
   });
 
-  it("requires machine-readable QA evidence", () => {
-    expect(readSkill("loop-qa").markdown).toContain("machine-readable QA report");
+  it("retains detailed implementation and QA evidence protocols", () => {
+    const implement = read("skills/loop-build/references/protocols/loop-implement/SKILL.md");
+    const qa = read("skills/loop-build/references/protocols/loop-qa/SKILL.md");
+    expect(implement).toContain("matching plan hash");
+    expect(qa).toContain("machine-readable QA report");
   });
 
-  it("deploys progressively from shadow after a pass verdict", () => {
-    const markdown = readSkill("loop-deploy").markdown;
-    expect(markdown).toContain("pass verdict");
-    expect(markdown).toContain("shadow");
+  it("launches progressively from shadow after a fresh pass verdict", () => {
+    const launch = read("skills/loop-launch/SKILL.md");
+    const deploy = read("skills/loop-launch/references/protocols/loop-deploy/SKILL.md");
+    expect(launch).toContain("fresh machine-readable QA pass");
+    expect(launch).toContain("shadow → evidence review → canary");
+    expect(deploy).toContain("pass verdict");
+    expect(deploy).toContain("shadow");
   });
 
-  it("modifies only through semantic diff and a new plan", () => {
-    const markdown = readSkill("loop-modify").markdown;
-    expect(markdown).toContain("semantic diff");
-    expect(markdown).toContain("loop-plan");
+  it("routes all operating intents inside one public workflow", () => {
+    const operate = read("skills/loop-operate/SKILL.md");
+    for (const protocol of ["loop-list", "loop-show", "loop-monitor", "loop-debug", "loop-modify", "loop-improve"])
+      expect(operate).toContain(protocol);
+    expect(operate).toContain("next_skill: loop-plan");
   });
 
-  it("debugs before proposing modifications", () => {
-    expect(readSkill("loop-debug").markdown).toContain("investigate before modification");
-  });
-
-  it("prevents silent structural self-improvement", () => {
-    expect(readSkill("loop-improve").markdown).toContain("structural rules require a new approved plan");
+  it("preserves semantic diff, debug-first, and structural-change controls", () => {
+    const modify = read("skills/loop-operate/references/protocols/loop-modify/SKILL.md");
+    const debug = read("skills/loop-operate/references/protocols/loop-debug/SKILL.md");
+    const improve = read("skills/loop-operate/references/protocols/loop-improve/SKILL.md");
+    expect(modify).toContain("semantic diff");
+    expect(modify).toContain("loop-plan");
+    expect(debug).toContain("investigate before modification");
+    expect(improve).toContain("structural rules require a new approved plan");
   });
 });

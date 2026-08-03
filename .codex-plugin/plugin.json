@@ -1,18 +1,18 @@
 {
   "name": "loopstack",
-  "version": "0.1.0",
-  "description": "Design, build, test, deploy, and operate measurable AI loops.",
+  "version": "0.2.0",
+  "description": "Discover, design, plan, build, launch, and operate measurable AI loops.",
   "author": {
-    "name": "Erwan"
+    "name": "ErwanFx"
   },
   "skills": "./skills/",
   "interface": {
     "displayName": "Loopstack",
-    "shortDescription": "Build reliable AI loops.",
-    "longDescription": "Loopstack guides business-process discovery and produces measurable, testable AI loops with explicit human controls.",
-    "developerName": "Erwan",
+    "shortDescription": "Build and operate measurable AI loops.",
+    "longDescription": "Loopstack uses six fluid, approval-aware workflows with internal specialist protocols and evidence-backed transitions.",
+    "developerName": "ErwanFx",
     "category": "Productivity",
     "capabilities": [],
-    "defaultPrompt": "Help me turn a business process into a reliable AI loop."
+    "defaultPrompt": "Help me turn a business process into a reliable measurable AI loop."
   }
 }

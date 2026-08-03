@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build Loop"
+  short_description: "Provision, implement, and QA one approved plan"
+  default_prompt: "Use $loop-build to verify the approved plan hash, execute authorized tasks continuously, run QA automatically, and stop only on a real blocker."

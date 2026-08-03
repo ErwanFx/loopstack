@@ -1,0 +1,24 @@
+handoff:
+  loop_id: ecoi-seo-content
+  completed_skill: loop-eric-review
+  review_version: 2
+  status: completed
+  verdict: pass
+  artifacts:
+    - eric-review-v2.yaml
+    - design/revision-eric.yaml
+    - design/revision-approval-eric.yaml
+  readiness:
+    status: blocked
+    score: 68
+    blocking:
+      - data_access
+      - tested_alert_channel
+  planning_allowed: true
+  activation_allowed: false
+  next_skill: loop-plan
+  blocking_requirements:
+    - activation:data_access
+    - activation:tested_alert_channel
+    - canary:approved_cron_reconciliation
+    - qa:shadow_canary_recovery_not_executed

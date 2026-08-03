@@ -1,0 +1,4 @@
+interface:
+  display_name: "Launch Loop"
+  short_description: "Approval-gated shadow, canary, and active rollout"
+  default_prompt: "Use $loop-launch to verify readiness, request the exact activation approval, and run a bounded reversible rollout."

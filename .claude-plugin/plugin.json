@@ -1,5 +1,12 @@
 {
   "name": "loopstack",
-  "version": "0.1.0",
-  "description": "Design, build, test, and operate measurable AI loops."
+  "version": "0.2.0",
+  "description": "Discover, design, plan, build, launch, and operate measurable AI loops.",
+  "author": {
+    "name": "ErwanFx"
+  },
+  "homepage": "https://github.com/ErwanFx/loopstack",
+  "repository": "https://github.com/ErwanFx/loopstack",
+  "license": "MIT",
+  "keywords": ["ai-loops", "workflows", "measurement", "approvals", "operations"]
 }
