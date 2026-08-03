@@ -19,9 +19,18 @@
 - Long blueprint prose + YAML package without a single glanceable loop diagram.
 - Owner could not “see” the control cycle → weak validation signal.
 
+### Hermes native Learn layer (all domains)
+- Every AI Loop design must connect operational evidence to Hermes self-improvement.
+- Keep operational state, traces, scores and events in the loop store.
+- Use `skill_manage` for recurring procedures or explicit owner corrections.
+- Use persistent memory only for durable facts, preferences and constraints; exclude progress, run logs, transient metrics, secrets and raw dumps.
+- Require anti-noise evidence before a skill patch: recurrence, measured pattern, or explicit owner correction.
+- Treat this as a native capability, not a fake installable `learn` skill.
+
 ### Skill rules added
 1. HTML blueprint mandatory; generated with architecture-diagram skill.
 2. Six-box structure mandatory in both HTML and process design.
 3. Exit = owner approval gate (awaiting-approval until APPROVE).
 4. Example HTML checked into references/ as quality bar.
 5. YAML package remains required for machine handoff downstream.
+6. Hermes native learning is mandatory in Learn for every domain.
