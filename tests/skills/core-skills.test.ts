@@ -57,6 +57,8 @@ describe("core workflow skills", () => {
     const { markdown } = readSkill("loop-eric-review");
     expect(markdown).toContain("target / current / gap");
     expect(markdown).toContain("never override a blocker");
+    expect(markdown).toContain("Design verdict vs activation readiness");
+    expect(markdown).toContain("Passing the review must never clear or hide a blocker");
   });
 
   it("stops planning at explicit approval", () => {

@@ -25,6 +25,15 @@ Lead with a verdict: pass, revise, or stop. Then review:
 
 Run the readiness command against **current artifacts**, first reconciling stale statuses from completed storage/tool work. Scores help compare designs but never override a blocker. For alert readiness, verify actual destination placement; scheduler acceptance alone does not count. Do not accept “self-improving” unless learning changes a versioned policy, prompt, skill, threshold, or action choice after evaluation. Learning may propose changes; consequential modifications still require approval.
 
+### Design verdict vs activation readiness
+
+Always report these separately:
+
+- **Design verdict** (`pass | revise | stop`) answers whether the loop is complete enough for `loop-plan`.
+- **Activation readiness** (`ready | blocked`) answers whether it may later go live.
+
+A design may `pass` to `loop-plan` while activation remains `blocked` only when every blocker has an explicit owner, acceptance criteria, implementation/verification step, and a gate that prevents premature activation. Passing the review must never clear or hide a blocker. Return `revise` when the design merely names a blocker without a credible treatment, safety boundary, or test contract.
+
 ## Handoff
 
 Pass routes to `loop-plan`. Revise routes back to `loop-design` with exact defects while naming the already-approved components that must be preserved; do not trigger a wholesale redesign. Stop has no next skill. In the user-facing conclusion, explicitly present and propose the routed next skill per `using-loopstack`.
