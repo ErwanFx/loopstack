@@ -16,7 +16,7 @@ describe("plugin manifests", () => {
   it("matches the repository and exposes only consolidated top-level skills", () => {
     const manifest = JSON.parse(readFileSync(".codex-plugin/plugin.json", "utf8"));
     expect(manifest.name).toBe("loopstack");
-    expect(manifest.version).toBe("0.2.0");
+    expect(manifest.version).toBe("0.2.1");
     expect(manifest.skills).toBe("./skills/");
     const discovered = readdirSync("skills", { withFileTypes: true })
       .filter((entry) => entry.isDirectory())
@@ -33,11 +33,11 @@ describe("plugin manifests", () => {
     expect(discovered).toEqual(publicSkills);
   });
 
-  it("keeps Hermes and Claude manifests on version 0.2.0", () => {
+  it("keeps Hermes and Claude manifests on version 0.2.1", () => {
     const hermes = readFileSync("plugin.yaml", "utf8");
     const claude = JSON.parse(readFileSync(".claude-plugin/plugin.json", "utf8"));
-    expect(hermes).toContain("version: 0.2.0");
-    expect(claude.version).toBe("0.2.0");
+    expect(hermes).toContain("version: 0.2.1");
+    expect(claude.version).toBe("0.2.1");
   });
 
   it("registers public skills and executable legacy aliases separately", () => {

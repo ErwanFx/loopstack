@@ -2,6 +2,54 @@
 
 Loopstack discovers, designs, plans, builds, launches, and operates measurable AI loops.
 
+It ships the same seven workflows as a plugin for Hermes Agent, Claude Code, and Codex. Hermes is the primary runtime, while the design contract remains portable: operational history lives in the loop store and reusable improvements use the selected runtime's real skill or instruction mechanism.
+
+## Install
+
+### Codex
+
+```bash
+codex plugin marketplace add ErwanFx/loopstack
+codex plugin add loopstack@loopstack
+```
+
+Start in Codex by invoking `$using-loopstack` and describing the business process. To refresh the marketplace and install the current release:
+
+```bash
+codex plugin marketplace upgrade loopstack
+codex plugin remove loopstack
+codex plugin add loopstack@loopstack
+```
+
+### Claude Code
+
+```bash
+claude plugin marketplace add ErwanFx/loopstack
+claude plugin install loopstack@loopstack
+```
+
+Start with `/using-loopstack`. Update the installed plugin with:
+
+```bash
+claude plugin update loopstack@loopstack
+```
+
+### Hermes Agent
+
+```bash
+hermes plugins install ErwanFx/loopstack --enable
+```
+
+Explicitly load `loopstack:using-loopstack`, then describe the process to interview and qualify. Hermes keeps the public skills namespaced and also registers executable compatibility names for persisted v1 handoffs. Update with:
+
+```bash
+hermes plugins update loopstack
+```
+
+The skill-only workflows have no Node.js dependency. Node.js 20+ and pnpm are required only to use the TypeScript CLI or develop and verify this repository. Storage and business-tool connections are selected per loop; none is globally required by the plugin.
+
+The Hermes `architecture-diagram` skill is an optional visual enhancement. If it is absent—or when the runtime is Claude Code or Codex—Loopstack can generate the same approval artifact as a self-contained HTML/SVG fallback.
+
 ## Public workflow
 
 ```text
@@ -18,7 +66,7 @@ Transitions between completed, authorized, non-blocked phases are automatic. The
 
 ## Why the surface is small
 
-Loopstack 0.2 keeps specialist procedures as progressively loaded references instead of exposing every internal concern as a user-facing skill. This follows the workflow structure popularized by [Superpowers](https://github.com/obra/superpowers): compact routing skills, exact terminal states, continuous execution, persistent evidence, and hard gates.
+Loopstack 0.2.1 keeps specialist procedures as progressively loaded references instead of exposing every internal concern as a user-facing skill. This follows the workflow structure popularized by [Superpowers](https://github.com/obra/superpowers): compact routing skills, exact terminal states, continuous execution, persistent evidence, and hard gates.
 
 ## Internal protocols
 

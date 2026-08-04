@@ -1,0 +1,20 @@
+{
+  "name": "loopstack",
+  "interface": {
+    "displayName": "Loopstack"
+  },
+  "plugins": [
+    {
+      "name": "loopstack",
+      "source": {
+        "source": "local",
+        "path": "."
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
