@@ -12,7 +12,10 @@ export type PromptCycleReasonCode =
   | "MAX_COST"
   | "DEADLINE"
   | "NO_PROGRESS"
-  | "SIDE_EFFECT_UNKNOWN";
+  | "SIDE_EFFECT_UNKNOWN"
+  | "ACTION_POLICY_VIOLATION"
+  | "INVALID_AGENT_RESULT"
+  | "CHECKPOINT_MISMATCH";
 
 export interface PromptCycleLimits {
   maxIterations: number;
@@ -42,13 +45,29 @@ export interface AgentRunRequest {
   makerResultId?: string;
 }
 
-export interface ActionAttempt {
-  action: string;
-  sideEffectState: "none" | "confirmed" | "unknown";
+export type ActionAttempt =
+  | { action: string; sideEffectState: "none" | "unknown" }
+  | { action: string; sideEffectState: "confirmed"; requestId: string; effectEvidenceId: string; idempotencyKey: string };
+
+export interface EffectTrustEnvelope {
+  requestId: string; loopId: string; runId: string; workItemId: string; role: AgentRole;
+  action: string; target: string; idempotencyKey: string;
+}
+export interface EffectAuthorityExpectedEnvelope {
+  requestId: string;
+  effects: readonly { evidenceId: string; envelope: EffectTrustEnvelope }[];
+}
+
+export interface VerifiedEffect {
+  verificationId: string;
+  evidenceId: string;
+  envelope: EffectTrustEnvelope;
+  verifiedAt: string;
 }
 
 export interface AgentRunResult {
   requestId: string;
+  role: AgentRole;
   resultId: string;
   outputArtifactRefs: string[];
   actionAttempts: ActionAttempt[];
@@ -56,6 +75,17 @@ export interface AgentRunResult {
   tokenUsage: number;
   cost: number;
   progressFingerprint: string;
+  /** Host-owned durable reconciliation proof. Fresh invoker results carrying this field are rejected. */
+  verifiedEffects?: readonly VerifiedEffect[];
+}
+
+export interface PromptEffectAuthority {
+  loadRecordedResult(requestId: string): Promise<AgentRunResult | null>;
+  verifyConsumeAndPersistResult(
+    expectedEnvelope: EffectAuthorityExpectedEnvelope,
+    result: AgentRunResult,
+    hostNow: string,
+  ): Promise<AgentRunResult | null>;
 }
 
 export interface CycleEvaluation {
@@ -82,6 +112,7 @@ export interface AgentInvoker {
 
 export interface PromptCycleStore {
   loadCheckpoint(loopId: string, workItemId: string): Promise<PromptCycleCheckpoint | null>;
+  loadResult(requestId: string): Promise<AgentRunResult | null>;
   saveCheckpoint(checkpoint: PromptCycleCheckpoint): Promise<void>;
   appendResult(result: AgentRunResult): Promise<void>;
 }
@@ -99,9 +130,16 @@ export type CheckpointPhase =
   | "terminal";
 
 export interface PromptCycleCheckpoint {
+  checkpointRevision: number;
+  runContractHash: string;
   loopId: string;
   workItemId: string;
+  baseRunId: string;
   runId: string;
+  target: string;
+  promptTemplateVersions: Readonly<{ maker: number; checker: number }>;
+  limits: Readonly<PromptCycleLimits>;
+  initialInputSnapshotHash: string;
   resumeCount: number;
   iteration: number;
   phase: CheckpointPhase;
@@ -137,6 +175,26 @@ export interface PromptCycleInput {
   promptTemplateVersions: { maker: number; checker: number };
   checker: { enabled: boolean; rubric: string[] };
   limits: PromptCycleLimits;
+  resumeCapabilityId?: string;
+}
+
+export interface PromptCycleResumeCapability {
+  id: string;
+  waitDecision: "wait-human" | "wait-external";
+  loopId: string;
+  workItemId: string;
+  runId: string;
+  previousEvaluation: string;
+  checkpointRevision: number;
+  oldSnapshotHash: string;
+  newSnapshotHash: string;
+  runContractHash: string;
+  issuedAt: string;
+  expiresAt: string;
+}
+
+export interface PromptCycleResumeCapabilityResolver {
+  consume(id: string, expectedEnvelope: Omit<PromptCycleResumeCapability, "id" | "issuedAt" | "expiresAt">, hostNow: string): Promise<PromptCycleResumeCapability | null>;
 }
 
 export interface PromptCycleDependencies {
@@ -144,6 +202,8 @@ export interface PromptCycleDependencies {
   store: PromptCycleStore;
   evaluator: CycleEvaluator;
   now?: () => Date;
+  resumeCapabilities?: PromptCycleResumeCapabilityResolver;
+  effectAuthority?: PromptEffectAuthority;
 }
 
 export interface PromptCycleOutcome {

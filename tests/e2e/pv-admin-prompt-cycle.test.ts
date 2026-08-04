@@ -47,6 +47,7 @@ describe("PV administration prompt cycle", () => {
           invocations.push(request);
           return {
             requestId: request.requestId,
+            role: request.role,
             resultId: `${request.requestId}:result`,
             outputArtifactRefs: request.role === "maker" ? ["mairie-dossier-preview.pdf"] : [],
             actionAttempts: [],
@@ -68,19 +69,23 @@ describe("PV administration prompt cycle", () => {
       },
       store: {
         async loadCheckpoint() { return null; },
+        async loadResult() { return null; },
         async saveCheckpoint(checkpoint) { checkpoints.push(checkpoint); },
         async appendResult() {},
       },
       now: () => new Date("2026-08-04T10:00:00.000Z"),
     });
 
-    const waiting = applyWorkItemEvent(process, item, {
+    const waiting = await applyWorkItemEvent(process, item, {
       event: "dossier.complete",
       actor: "agent",
       occurredAt: "2026-08-04T10:00:00.000Z",
       idempotencyKey: "dossier-client-123:complete:1",
       expectedRevision: 0,
-    }, new Set());
+    }, {
+      now: () => new Date("2026-08-04T10:00:00.000Z"),
+      store: { async mutate() { return { kind: "applied" as const }; } },
+    });
 
     expect(invocations.map(({ role }) => role)).toEqual(["maker", "checker"]);
     expect(outcome.decision).toBe("wait-human");

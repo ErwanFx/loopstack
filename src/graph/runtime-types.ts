@@ -17,7 +17,10 @@ export type GraphRunReasonCode =
   | "NODE_FAILED"
   | "ARTIFACT_CONTRACT_VIOLATION"
   | "SIDE_EFFECT_UNKNOWN"
-  | "TOPOLOGY_CHANGED";
+  | "TOPOLOGY_CHANGED"
+  | "CHECKPOINT_MISMATCH"
+  | "RUN_CLAIMED"
+  | "NODE_TIMEOUT";
 
 export interface GraphNodeExecutionRequest {
   requestId: string;
@@ -33,15 +36,18 @@ export interface GraphNodeExecutionRequest {
   inputs: Readonly<Record<string, unknown>>;
   artifacts: Readonly<Record<string, unknown>>;
   state: Readonly<Record<string, unknown>>;
+  idempotencyKey?: string;
 }
 
 export interface GraphNodeExecutionResult {
+  requestId: string;
   status: "completed" | "wait-human" | "wait-external" | "failed";
   cost: number;
   artifacts?: Record<string, unknown>;
   stateUpdate?: Record<string, unknown>;
   error?: string;
   sideEffectState?: "none" | "confirmed" | "unknown";
+  effectEvidenceId?: string;
 }
 
 export interface GraphNodeExecutor {
@@ -51,12 +57,15 @@ export interface GraphNodeExecutor {
 export type GraphCheckpointPhase = "before-node" | "after-node" | "terminal";
 
 export interface GraphCheckpoint {
+  revision: number;
   graphId: string;
   graphVersion: number;
   topologyHash: string;
   loopId: string;
   runId: string;
   workItemId: string;
+  runContractHash: string;
+  inputSnapshotHash: string;
   phase: GraphCheckpointPhase;
   status: GraphRunStatus;
   currentNodeId?: string;
@@ -77,6 +86,10 @@ export interface GraphCheckpoint {
 export interface GraphCheckpointStore {
   load(runId: string): Promise<GraphCheckpoint | null>;
   save(checkpoint: GraphCheckpoint): Promise<void>;
+  claimNode(runId: string, nodeId: string, expectedRevision: number, ownerId: string, leaseUntil: string): Promise<string | null>;
+  renewClaim(claimToken: string, expectedRevision: number, leaseUntil: string): Promise<boolean>;
+  saveAfterNode(checkpoint: GraphCheckpoint, expectedRevision: number, claimToken: string): Promise<GraphCheckpoint>;
+  releaseNode(runId: string, nodeId: string, claimToken: string): Promise<void>;
 }
 
 export interface GraphRunInput {
@@ -84,6 +97,39 @@ export interface GraphRunInput {
   workItemId: string;
   initialState: Record<string, unknown>;
   initialArtifacts: Record<string, unknown>;
+  runContractHash: string;
+  inputSnapshotHash: string;
+  resumeCapabilityId?: string;
+}
+
+export interface GraphResumeCapability {
+  id: string;
+  graphId: string;
+  graphVersion: number;
+  topologyHash: string;
+  loopId: string;
+  runId: string;
+  workItemId: string;
+  nodeId: string;
+  waitStatus: "waiting-human" | "waiting-external";
+  checkpointRevision: number;
+  oldSnapshotHash: string;
+  newSnapshotHash: string;
+  runContractHash: string;
+  issuedAt: string;
+  expiresAt: string;
+}
+
+export interface GraphResumeCapabilityResolver {
+  consume(id: string, expectedEnvelope: Omit<GraphResumeCapability, "id" | "issuedAt" | "expiresAt">, hostNow: string): Promise<GraphResumeCapability | null>;
+}
+
+export interface GraphEffectTrustEnvelope {
+  requestId: string; graphId: string; graphVersion: number; topologyHash: string;
+  loopId: string; runId: string; workItemId: string; nodeId: string; idempotencyKey: string;
+}
+export interface GraphEffectTrustResolver {
+  consume(id: string, expectedEnvelope: GraphEffectTrustEnvelope, hostNow: string): Promise<boolean>;
 }
 
 export interface GraphRunnerDependencies {
@@ -91,6 +137,14 @@ export interface GraphRunnerDependencies {
   executor: GraphNodeExecutor;
   now?: () => Date;
   deadline?: string;
+  runnerId: string;
+  leaseSeconds?: number;
+  setTimeout?: (callback: () => void, milliseconds: number) => unknown;
+  clearTimeout?: (handle: unknown) => void;
+  setInterval?: (callback: () => void, milliseconds: number) => unknown;
+  clearInterval?: (handle: unknown) => void;
+  resumeCapabilities?: GraphResumeCapabilityResolver;
+  effectTrustResolver?: GraphEffectTrustResolver;
 }
 
 export interface GraphRunOutcome {
