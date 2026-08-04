@@ -181,6 +181,7 @@ export const HandoffV2Schema = z.object({
   next_journey: PublicJourneySchema.nullable(),
   completed_workers: z.array(LoopIdSchema).min(1),
   pending_gate: GateKindSchema.nullable(),
+  blocker_kind: z.enum(["approval", "operational"]).optional(),
   scope_hash: Sha256Schema,
   artifact_hashes: z.record(z.string().min(1), Sha256Schema),
   gate_evidence: z.array(GateEvidenceSchema),

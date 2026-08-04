@@ -42,6 +42,16 @@ export type ReadinessReport = {
   score: number;
   blocking: string[];
   advisory: string[];
+  build_ready: boolean;
+  shadow_ready: boolean;
+  canary_ready: boolean;
+  activation_ready: boolean;
+  stage_blocking: {
+    build: string[];
+    shadow: string[];
+    canary: string[];
+    activation: string[];
+  };
 };
 
 type Requirement = readonly [code: string, satisfied: (candidate: ReadinessCandidate) => boolean];
@@ -84,11 +94,33 @@ const advisoryFactors = ["evidenceQuality", "leverage", "reversibility", "dataCo
 
 export function evaluateReadiness(candidate: ReadinessCandidate): ReadinessReport {
   const blocking = requirements.filter(([, satisfied]) => !satisfied(candidate)).map(([code]) => code);
+  const shadowRequirements = new Set(["connected_storage", "required_tool_connections"]);
+  const canaryRequirements = new Set(["tested_alert_channel"]);
+  const activationRequirements = new Set(["primary_trigger_policy", "consequential_human_gates", "guardrail_response"]);
+  const buildBlocking = blocking.filter((code) =>
+    !shadowRequirements.has(code) && !canaryRequirements.has(code) && !activationRequirements.has(code));
+  const shadowBlocking = blocking.filter((code) => !canaryRequirements.has(code) && !activationRequirements.has(code));
+  const canaryBlocking = blocking.filter((code) => !activationRequirements.has(code));
   const normalizedFactors = advisoryFactors.map((factor) => Math.min(1, Math.max(0, candidate[factor] ?? 0)));
   const score = Math.round((normalizedFactors.reduce((sum, value) => sum + value, 0) / normalizedFactors.length) * 100);
   const advisory = advisoryFactors
     .filter((factor) => (candidate[factor] ?? 0) < 0.6)
     .map((factor) => `improve_${factor.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)}`);
 
-  return { status: blocking.length === 0 ? "ready" : "blocked", score, blocking, advisory };
+  return {
+    status: blocking.length === 0 ? "ready" : "blocked",
+    score,
+    blocking,
+    advisory,
+    build_ready: buildBlocking.length === 0,
+    shadow_ready: shadowBlocking.length === 0,
+    canary_ready: canaryBlocking.length === 0,
+    activation_ready: blocking.length === 0,
+    stage_blocking: {
+      build: buildBlocking,
+      shadow: shadowBlocking,
+      canary: canaryBlocking,
+      activation: blocking,
+    },
+  };
 }

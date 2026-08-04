@@ -1,8 +1,8 @@
-import { readFileSync } from "node:fs";
-import { runQa, type QaInput } from "../qa/runner.js";
+import { runQa, QaInputSchema } from "../qa/runner.js";
+import { loadStructuredDocument } from "./document-loader.js";
 
 export async function evaluateQaFile(path: string) {
-  return runQa(JSON.parse(readFileSync(path, "utf8")) as QaInput);
+  return runQa(QaInputSchema.parse(loadStructuredDocument(path)));
 }
 
 export async function runQaCommand(args: readonly string[]): Promise<number> {

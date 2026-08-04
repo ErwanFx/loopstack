@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { LoopDefinitionSchema } from "../../src/domain/schemas.js";
 import { buildRegistry } from "../../src/operations/registry.js";
-import { runQa } from "../../src/qa/runner.js";
+import { InMemoryQaTrustRegistry, runQa, type QaTrustRecord } from "../../src/qa/runner.js";
 import { ClaudeCodeRuntimeAdapter } from "../../src/runtimes/claude-code.js";
 import { CodexRuntimeAdapter } from "../../src/runtimes/codex.js";
 import { HermesRuntimeAdapter } from "../../src/runtimes/hermes.js";
@@ -41,7 +41,19 @@ describe("SEO loop shadow lifecycle", () => {
     expect(run.externalCalls).toBe(0);
     expect(run.action).toBe("simulate_draft");
 
-    const qa = await runQa({ manifest: "valid", connections: "verified", storageContract: "verified", scenarios: "pass", approvals: "pass", idempotency: "pass", alerts: "pass", canary: "pass" });
+    const gates = ["static", "connections", "storage-contract", "scenarios", "approvals", "idempotency", "alerts", "canary"] as const;
+    const scopeHash = "a".repeat(64);
+    const artifactHash = "b".repeat(64);
+    const evidenceIds = Object.fromEntries(gates.map((gate) => [gate, `opaque-${gate}`]));
+    const evidence = gates.map<QaTrustRecord>((gate) => ({
+      evidenceId: `opaque-${gate}`, loopId: loop.id, scopeHash, artifactHash, gate, status: "pass",
+      issuedAt: "2026-08-01T13:00:00.000Z", expiresAt: "2026-08-01T15:00:00.000Z", nonce: `nonce-${gate}`,
+    }));
+    const qa = await runQa({
+      manifest: "valid", connections: "verified", storageContract: "verified", scenarios: "pass",
+      approvals: "pass", idempotency: "pass", alerts: "pass", canary: "pass",
+      loopId: loop.id, scopeHash, artifactHash, evidenceIds,
+    }, new InMemoryQaTrustRegistry(evidence), new Date("2026-08-01T14:00:00.000Z"));
     expect(qa.verdict).toBe("pass");
     const registry = await buildRegistry([
       { id: loop.id, name: loop.name, status: "shadow", runtime: "hermes", storage: "convex", version: 1, targetMetric: "qualified_leads" },

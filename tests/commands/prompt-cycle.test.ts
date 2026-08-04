@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { runPromptCycleCommand } from "../../src/commands/prompt-cycle.js";
 
-function writeLoopModule(): string {
+function writeLoopModule(decision = "stop-success"): string {
   const root = mkdtempSync(join(tmpdir(), "loopstack-prompt-cycle-"));
   const modulePath = join(root, "prompt-cycle.mjs");
   writeFileSync(modulePath, `
@@ -53,7 +53,7 @@ export async function createPromptCycleRun(context) {
       },
       evaluator: {
         async evaluate() {
-          return { decision: "stop-success", reason: "done", evaluationId: "evaluation-1" };
+          return { decision: ${JSON.stringify(decision)}, reason: "done", evaluationId: "evaluation-1" };
         }
       }
     }
@@ -92,5 +92,14 @@ describe("prompt-cycle CLI", () => {
       code: "PROMPT_CYCLE_FAILED",
     });
     error.mockRestore();
+  });
+
+  it("uses distinct process outcomes for business failure, escalation, and structured waits", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    expect(await runPromptCycleCommand(["run", "--loop", writeLoopModule("stop-failure")])).toBe(1);
+    expect(await runPromptCycleCommand(["run", "--loop", writeLoopModule("escalate")])).toBe(3);
+    expect(await runPromptCycleCommand(["run", "--loop", writeLoopModule("wait-human")])).toBe(0);
+    expect(JSON.parse(String(log.mock.calls.at(-1)?.[0]))).toMatchObject({ decision: "wait-human" });
+    log.mockRestore();
   });
 });

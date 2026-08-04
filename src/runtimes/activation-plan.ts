@@ -12,6 +12,7 @@ export const ActivationPlanSchema = z.object({
   schemaVersion: z.literal(1),
   runtime: z.literal("hermes"),
   loopId: z.string().min(1),
+  version: z.number().int().nonnegative(),
   enabled: z.literal(false),
   controller: ArgumentCommandSchema,
   skills: z.array(z.string().min(1)).min(1),
@@ -24,6 +25,9 @@ export const ActivationPlanSchema = z.object({
     activation: ArgumentCommandSchema,
     verification: z.array(ArgumentCommandSchema).min(1),
     removal: ArgumentCommandSchema,
+    outputBindings: z.object({
+      job_id: z.object({ source: z.literal("activation"), jsonPath: z.literal("$.job_id") }),
+    }).optional(),
     security: z.object({
       hmacRequired: z.boolean(),
       secretEnv: z.string().min(1).nullable(),
@@ -35,6 +39,23 @@ export const ActivationPlanSchema = z.object({
 });
 
 export type ActivationPlan = z.infer<typeof ActivationPlanSchema>;
+
+export function interpolateActivationCommand(
+  command: z.infer<typeof ArgumentCommandSchema>,
+  outputBindings: ActivationPlan["triggers"][number]["outputBindings"],
+  activationOutput: Record<string, unknown>,
+): z.infer<typeof ArgumentCommandSchema> {
+  let args = [...command.args];
+  for (const [key, binding] of Object.entries(outputBindings ?? {})) {
+    const outputKey = binding.jsonPath.startsWith("$.") ? binding.jsonPath.slice(2) : "";
+    const value = activationOutput[outputKey];
+    if ((typeof value !== "string" && typeof value !== "number") || String(value).length === 0) {
+      throw new Error(`Missing activation output for ${binding.jsonPath}`);
+    }
+    args = args.map((argument) => argument.split(`{{${key}}}`).join(String(value)));
+  }
+  return ArgumentCommandSchema.parse({ executable: command.executable, args });
+}
 
 export function createHermesActivationPlan(
   loop: LoopDefinition,
@@ -76,7 +97,8 @@ export function createHermesActivationPlan(
         verification: [
           { executable: "hermes", args: [...profileArgs, "cron", "list", "--all"] },
         ],
-        removal: { executable: "hermes", args: [...profileArgs, "cron", "remove", id] },
+        removal: { executable: "hermes", args: [...profileArgs, "cron", "remove", "{{job_id}}"] },
+        outputBindings: { job_id: { source: "activation" as const, jsonPath: "$.job_id" as const } },
         security: {
           hmacRequired: false,
           secretEnv: null,
@@ -120,6 +142,7 @@ export function createHermesActivationPlan(
     schemaVersion: 1,
     runtime: "hermes",
     loopId: loop.id,
+    version: loop.version,
     enabled: false,
     controller,
     skills,

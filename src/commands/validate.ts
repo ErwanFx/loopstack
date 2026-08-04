@@ -1,21 +1,17 @@
-import { readFileSync } from "node:fs";
-import { parse } from "yaml";
 import { evaluateReadiness, type ReadinessCandidate, type ReadinessReport } from "../domain/readiness.js";
-import { LoopDefinitionSchema } from "../domain/schemas.js";
+import { loadLoopDocument, loadStructuredDocument } from "./document-loader.js";
 
 export type ProcessClassification =
-  | "AI Loop"
-  | "AI-assisted workflow"
-  | "deterministic automation"
-  | "on-demand agent task"
-  | "monitoring or reporting system"
-  | "human SOP or approval process"
-  | "data pipeline"
-  | "one-time project"
-  | "multiple independent loops requiring decomposition";
+  | "AI Loop" | "AI-assisted workflow" | "deterministic automation" | "on-demand agent task"
+  | "monitoring or reporting system" | "human SOP or approval process" | "data pipeline"
+  | "one-time project" | "multiple independent loops requiring decomposition";
 
 export type ValidationEnvelope = {
+  /** Backward-compatible alias for schemaValid. It does not mean ready to build or launch. */
   valid: boolean;
+  schemaValid: boolean;
+  buildReady: boolean;
+  readinessReady: boolean;
   classification: ProcessClassification;
   readiness: ReadinessReport;
   errors: Array<{ code: string; path: string; message: string }>;
@@ -50,34 +46,36 @@ export function classifyProcess(document: LoopDocument): ProcessClassification {
   return "AI-assisted workflow";
 }
 
-export function validateLoopFile(path: string): ValidationEnvelope {
-  const document = parse(readFileSync(path, "utf8")) as LoopDocument;
-  const classification = classifyProcess(document);
-  const readiness = evaluateReadiness(document.readiness ?? {});
-  const errors: ValidationEnvelope["errors"] = [];
-
-  if (classification === "AI Loop") {
-    const schemaResult = LoopDefinitionSchema.safeParse(document.loop);
-    if (!schemaResult.success) {
-      errors.push(...schemaResult.error.issues.map((issue) => ({
-        code: "SCHEMA_INVALID",
-        path: issue.path.join("."),
-        message: issue.message,
-      })));
-    }
-    errors.push(...readiness.blocking.map((code) => ({
-      code: "READINESS_BLOCKED",
-      path: `readiness.${code}`,
-      message: `Missing hard requirement: ${code}`,
-    })));
-  }
-
+function envelope(classification: ProcessClassification, readiness: ReadinessReport): ValidationEnvelope {
   return {
-    valid: classification !== "AI Loop" || errors.length === 0,
+    valid: true,
+    schemaValid: true,
+    buildReady: classification !== "AI Loop" || readiness.build_ready,
+    readinessReady: readiness.status === "ready",
     classification,
     readiness,
-    errors,
+    errors: [],
   };
+}
+
+export function validateLoopFile(path: string): ValidationEnvelope {
+  const raw = loadStructuredDocument(path) as LoopDocument & { schemaVersion?: unknown };
+  const declaresEnvelope = raw !== null && typeof raw === "object"
+    && Object.prototype.hasOwnProperty.call(raw, "loop");
+  const hintedClassification = classifyProcess(raw);
+  if (!declaresEnvelope && hintedClassification !== "AI Loop" && raw.schemaVersion !== 3) {
+    return envelope(hintedClassification, evaluateReadiness(raw.readiness ?? {}));
+  }
+
+  // Any document declaring `loop` is an envelope and must parse strictly; never downgrade it by hints.
+  const loaded = loadLoopDocument(path);
+  const document: LoopDocument = {
+    loop: loaded.loop,
+    ...(loaded.classificationHints === undefined ? {} : { classificationHints: loaded.classificationHints as LoopDocument["classificationHints"] }),
+    ...(loaded.readiness === undefined ? {} : { readiness: loaded.readiness }),
+  };
+  const classification = loaded.shape === "official-v3" ? "AI Loop" : classifyProcess(document);
+  return envelope(classification, evaluateReadiness(document.readiness ?? {}));
 }
 
 export function runValidateCommand(args: readonly string[]): number {
@@ -86,11 +84,10 @@ export function runValidateCommand(args: readonly string[]): number {
     console.error(JSON.stringify({ code: "INVALID_ARGUMENT", message: "Provide a YAML file path" }));
     return 2;
   }
-
   try {
     const result = validateLoopFile(path);
     console.log(JSON.stringify(result, null, 2));
-    return result.valid ? 0 : 2;
+    return result.schemaValid ? 0 : 2;
   } catch (error) {
     console.error(JSON.stringify({ code: "INVALID_LOOP_FILE", message: error instanceof Error ? error.message : String(error) }));
     return 2;

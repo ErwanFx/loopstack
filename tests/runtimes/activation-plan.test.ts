@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { resolve } from "node:path";
 import { LoopDefinitionSchema } from "../../src/domain/schemas.js";
-import { ActivationPlanSchema, createHermesActivationPlan } from "../../src/runtimes/activation-plan.js";
+import {
+  ActivationPlanSchema,
+  createHermesActivationPlan,
+  interpolateActivationCommand,
+} from "../../src/runtimes/activation-plan.js";
 import { HermesRuntimeAdapter } from "../../src/runtimes/hermes.js";
 
 const loop = LoopDefinitionSchema.parse({
@@ -49,7 +53,12 @@ describe("inert Hermes activation plans", () => {
       ],
     });
     expect(cron.verification).toEqual([{ executable: "hermes", args: ["-p", "pv-admin", "cron", "list", "--all"] }]);
-    expect(cron.removal.args).toEqual(["-p", "pv-admin", "cron", "remove", "weekly-review"]);
+    expect(cron.removal.args).toEqual(["-p", "pv-admin", "cron", "remove", "{{job_id}}"]);
+    expect(cron.outputBindings).toEqual({ job_id: { source: "activation", jsonPath: "$.job_id" } });
+    expect(interpolateActivationCommand(cron.removal, cron.outputBindings, { job_id: "job-123" })).toEqual({
+      executable: "hermes",
+      args: ["-p", "pv-admin", "cron", "remove", "job-123"],
+    });
 
     const webhook = plan.triggers.find(({ id }) => id === "visit-validated")!;
     expect(webhook.activation.args).toEqual([

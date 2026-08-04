@@ -47,6 +47,12 @@ export function textHasIdentifier(text: string, identifier: string): boolean {
   return new RegExp(`(^|[^A-Za-z0-9_-])${escaped}([^A-Za-z0-9_-]|$)`, "m").test(text);
 }
 
+export function listHasExactIdentifier(text: string, identifier: string): boolean {
+  const clean = text.replace(/\u001b\[[0-9;]*m/g, "");
+  return clean.split("\n").some((line) =>
+    line.trim().split(/\s+/).some((token) => token === identifier));
+}
+
 export function hermesHasEnabledTool(text: string, requiredTool: string): boolean {
   const mcpStyle = requiredTool.match(/^mcp__(.+?)__/);
   const identifiers = new Set([

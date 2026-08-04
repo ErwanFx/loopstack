@@ -10,6 +10,8 @@ export type QaGateResult = {
 };
 export type QaReport = {
   verdict: QaVerdict;
+  /** False means the report is structural diagnostics only and cannot authorize launch. */
+  authoritative: boolean;
   gates: QaGateResult[];
   blockers: QaFinding[];
   markdown: string;

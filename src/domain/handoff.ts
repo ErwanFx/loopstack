@@ -162,8 +162,14 @@ function validateV2Contract(handoff: Handoff): void {
   if (handoff.status === "completed" && handoff.pending_gate !== null) {
     throw new InvalidHandoffError("A completed v2 handoff cannot have a pending gate");
   }
-  if (handoff.status !== "completed" && handoff.pending_gate === null) {
-    throw new InvalidHandoffError("A stopped v2 handoff requires a pending gate");
+  if (handoff.status === "awaiting-approval" && handoff.pending_gate === null) {
+    throw new InvalidHandoffError("An approval handoff requires a pending gate");
+  }
+  if (handoff.status === "blocked" && handoff.pending_gate === null && handoff.blocker_kind !== "operational") {
+    throw new InvalidHandoffError("A generic blocked handoff must declare blocker_kind operational");
+  }
+  if (handoff.status === "blocked" && handoff.blocker_kind === "operational" && handoff.pending_gate !== null) {
+    throw new InvalidHandoffError("An operational blocker cannot claim a pending approval gate");
   }
 
   if (handoff.next_skill) {
@@ -234,8 +240,25 @@ export function normalizeHandoff(input: unknown): CanonicalHandoff {
   };
 }
 
-export function resolveHandoffTarget(input: unknown): PublicJourney | null {
+/** Structural routing only. This function performs no gate authorization. */
+export function resolveHandoffTargetUnsafe(input: unknown): PublicJourney | null {
   return normalizeHandoff(input).next_journey;
+}
+
+/** Resolves a handoff and authorizes every sensitive route gate in one operation. */
+export function resolveAuthorizedHandoffTarget(
+  input: unknown,
+  trust?: GateTrustContext,
+  now = new Date(),
+): PublicJourney | null {
+  const normalized = normalizeHandoff(input);
+  const handoff = normalized.source;
+  if (handoff.status !== "completed" || !handoff.next_skill) return null;
+  if (handoff.route_version === "v2") {
+    const edge = `${handoff.completed_skill}->${handoff.next_skill}`;
+    for (const gate of requiredRouteGates[edge] ?? []) assertGateAuthorization(handoff, gate, trust, now);
+  }
+  return normalized.next_journey;
 }
 
 /**
@@ -246,8 +269,7 @@ export function shouldAutoContinue(handoff: Handoff, trust?: GateTrustContext): 
   const validated = createHandoff(handoff);
   if (validated.status !== "completed" || !validated.next_skill) return false;
   if (validated.route_version === "v2") {
-    const edge = `${validated.completed_skill}->${validated.next_skill}`;
-    for (const gate of requiredRouteGates[edge] ?? []) assertGateAuthorization(validated, gate, trust);
+    resolveAuthorizedHandoffTarget(validated, trust);
   } else {
     const target = resolvePublicSkill(validated.next_skill);
     if (target === "loop-build" || target === "loop-launch") return false;

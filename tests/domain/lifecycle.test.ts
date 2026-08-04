@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
-import { canTransition, InvalidTransitionError, transition } from "../../src/domain/lifecycle.js";
+import { canTransition, GateEvidenceRequiredError, InvalidTransitionError, transition } from "../../src/domain/lifecycle.js";
 import { LoopDefinitionSchema } from "../../src/domain/schemas.js";
 
 const loop = LoopDefinitionSchema.parse({
@@ -15,9 +15,10 @@ const loop = LoopDefinitionSchema.parse({
 });
 
 describe("loop lifecycle", () => {
-  it("allows QA success to become ready", () => {
+  it("allows host-authorized QA success to become ready", () => {
     expect(canTransition("building", "ready")).toBe(true);
-    expect(transition(loop, "ready").status).toBe("ready");
+    const resolver = { authorizeAndConsume: () => true };
+    expect(transition(loop, "ready", { evidenceId: "opaque-qa-id" }, resolver).status).toBe("ready");
   });
 
   it("forbids deploying a designing loop", () => {
@@ -28,6 +29,31 @@ describe("loop lifecycle", () => {
   it("forces failed QA through qa-failed", () => {
     expect(canTransition("building", "qa-failed")).toBe(true);
     expect(canTransition("qa-failed", "active")).toBe(false);
+  });
+
+  it("has no domain activation route that bypasses an injected consuming resolver", () => {
+    const canary = { ...loop, status: "canary" as const };
+    expect(() => transition(canary, "active")).toThrow(GateEvidenceRequiredError);
+    const consumed = new Set<string>();
+    const resolver = {
+      authorizeAndConsume(request: { evidenceId: string; loopId: string; from: string; to: string }) {
+        if (request.evidenceId !== "opaque-host-id" || request.loopId !== loop.id
+          || request.from !== "canary" || request.to !== "active" || consumed.has(request.evidenceId)) return false;
+        consumed.add(request.evidenceId);
+        return true;
+      },
+    };
+    expect(transition(canary, "active", { evidenceId: "opaque-host-id" }, resolver).status).toBe("active");
+    expect(() => transition(canary, "active", { evidenceId: "opaque-host-id" }, resolver)).toThrow(GateEvidenceRequiredError);
+  });
+
+  it("never accepts a resolver smuggled inside caller-shaped authorization", () => {
+    const canary = { ...loop, status: "canary" as const };
+    const callerAuthorization = {
+      evidenceId: "opaque-host-id",
+      resolver: { authorizeAndConsume: () => true },
+    };
+    expect(() => transition(canary, "active", callerAuthorization as never)).toThrow(GateEvidenceRequiredError);
   });
 
   it("reports invalid CLI transitions as JSON", () => {

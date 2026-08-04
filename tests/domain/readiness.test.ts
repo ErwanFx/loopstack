@@ -45,6 +45,10 @@ describe("strict readiness gate", () => {
   it("blocks a proposal without tested alert delivery", () => {
     const report = evaluateReadiness({ ...completeCandidate, alertConnection: "untested" });
     expect(report.blocking).toContain("tested_alert_channel");
+    expect(report.build_ready).toBe(true);
+    expect(report.shadow_ready).toBe(true);
+    expect(report.canary_ready).toBe(false);
+    expect(report.activation_ready).toBe(false);
   });
 
   it("does not let a perfect advisory score bypass a hard blocker", () => {

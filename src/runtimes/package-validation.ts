@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import type { RuntimeName, RuntimeValidation } from "./types.js";
 import { generatedLoopSkillName } from "./render-helpers.js";
+import { validatePackageIntegrity } from "./package-integrity.js";
 
 const strictSemver = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
 const loopIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -38,12 +39,18 @@ export async function validateRuntimePackage(
 ): Promise<RuntimeValidation> {
   const errors: string[] = [];
   try {
+    const integrity = await validatePackageIntegrity(packagePath, runtime);
+    errors.push(...integrity.errors);
+    if (integrity.manifest === null) return { valid: false, errors };
     const runtimeManifest = await jsonFile(`${packagePath}/runtime.json`);
     const loopId = runtimeManifest.loopId;
     if (typeof loopId !== "string" || !loopIdPattern.test(loopId)) {
       errors.push("runtime.loopId must be a kebab-case loop id");
       return { valid: false, errors };
     }
+    if (runtimeManifest.runtime !== runtime) errors.push(`runtime.runtime must be ${runtime}`);
+    if (loopId !== integrity.manifest.loopId) errors.push("runtime.loopId must match package manifest loopId");
+    if (runtimeManifest.version !== integrity.manifest.version) errors.push("runtime.version must match package manifest version");
 
     const manifestPath = runtime === "claude-code"
       ? `${packagePath}/.claude-plugin/plugin.json`
@@ -51,6 +58,7 @@ export async function validateRuntimePackage(
     const manifest = await jsonFile(manifestPath);
     validateCommonManifest(manifest, errors);
     if (manifest.name !== `loopstack-${loopId}`) errors.push("plugin.name must match the runtime loop id");
+    if (manifest.version !== `${integrity.manifest.version}.0.0`) errors.push("plugin.version must match the runtime version");
 
     if (runtime === "codex") {
       if (manifest.skills !== "./skills/") errors.push("plugin.skills must be ./skills/");

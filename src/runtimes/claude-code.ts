@@ -10,6 +10,7 @@ import type {
 } from "./types.js";
 import { renderGraphExecution } from "./graph-execution.js";
 import { validateRuntimePackage } from "./package-validation.js";
+import { addPackageIntegrityManifest } from "./package-integrity.js";
 import { claudeHasEnabledPlugin, textHasIdentifier } from "./preflight-inspection.js";
 import { generatedLoopSkillName, renderGeneratedLoopSkill, safeDisplayName } from "./render-helpers.js";
 
@@ -91,7 +92,7 @@ export class ClaudeCodeRuntimeAdapter implements RuntimeAdapter {
     };
     return {
       ...portable,
-      files: {
+      files: addPackageIntegrityManifest(this.name, loop.id, loop.version, {
         "runtime.json": `${JSON.stringify(portable, null, 2)}\n`,
         ".claude-plugin/plugin.json": `${JSON.stringify({
           name: `loopstack-${loop.id}`,
@@ -105,7 +106,7 @@ export class ClaudeCodeRuntimeAdapter implements RuntimeAdapter {
           "graph.json": graphPackage.graphFile,
           "graph-binding.json": `${JSON.stringify(graphPackage.execution, null, 2)}\n`,
         }),
-      },
+      }),
     };
   }
 
@@ -118,8 +119,17 @@ export class ClaudeCodeRuntimeAdapter implements RuntimeAdapter {
     ]);
     const blockers: string[] = [];
     if (cli.exitCode !== 0) blockers.push("claude_cli");
+    let authStatus: unknown;
+    try {
+      authStatus = JSON.parse(authentication.stdout);
+    } catch {
+      authStatus = null;
+    }
     const authenticated = authentication.exitCode === 0
-      && !/"loggedIn"\s*:\s*false|not logged in/i.test(`${authentication.stdout}\n${authentication.stderr}`);
+      && authStatus !== null
+      && typeof authStatus === "object"
+      && !Array.isArray(authStatus)
+      && (authStatus as Record<string, unknown>).loggedIn === true;
     if (!authenticated) blockers.push("authenticated_profile");
     if (plugins.exitCode !== 0) blockers.push("skills_directory");
     const wrapperName = `loopstack-${input.loop.id}`;

@@ -5,7 +5,8 @@ import {
   hashGateEvidence,
   InvalidHandoffError,
   normalizeHandoff,
-  resolveHandoffTarget,
+  resolveAuthorizedHandoffTarget,
+  resolveHandoffTargetUnsafe,
   resolvePublicSkill,
   shouldAutoContinue,
   skillRoute,
@@ -89,6 +90,17 @@ describe("skill handoffs", () => {
     expect(handoff.status).toBe("blocked");
   });
 
+  it("represents a generic v2 operational blocker without inventing a pending gate", () => {
+    const blocked = {
+      ...v2("loop-build", null),
+      status: "blocked" as const,
+      pending_gate: null,
+      blocker_kind: "operational" as const,
+      blocking_requirements: ["remote API unavailable"],
+    };
+    expect(createHandoff(blocked)).toMatchObject({ blocker_kind: "operational", pending_gate: null });
+  });
+
   it("preserves historical revision and bootstrap return routes", () => {
     expect(createHandoff({ ...base, completed_skill: "loop-design", next_skill: "loop-eric-review" }).next_skill)
       .toBe("loop-eric-review");
@@ -124,7 +136,7 @@ describe("skill handoffs", () => {
     expect(normalized.journey).toBe("loop-design");
     expect(normalized.next_journey).toBe("loop-plan");
     expect(normalized.source.review_version).toBe(2);
-    expect(resolveHandoffTarget(source)).toBe("loop-plan");
+    expect(resolveHandoffTargetUnsafe(source)).toBe("loop-plan");
   });
 
   it("requires the complete dual-write contract for explicit v2 records", () => {
@@ -227,5 +239,11 @@ describe("skill handoffs", () => {
       completed_skill: "loop-eric-review",
       next_skill: "loop-plan",
     }))).toBe(true);
+  });
+
+  it("authorizes and resolves a sensitive handoff atomically", () => {
+    const source = v2("loop-plan", "loop-build", ["plan-approval"]);
+    expect(() => resolveAuthorizedHandoffTarget(source)).toThrow(/external trust context/);
+    expect(resolveAuthorizedHandoffTarget(source, trustFor(source))).toBe("loop-build");
   });
 });
