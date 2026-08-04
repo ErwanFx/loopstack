@@ -1,17 +1,27 @@
 {
   "name": "loopstack",
-  "version": "0.2.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "bin": {
     "loopstack": "dist/cli.js"
   },
+  "files": [
+    "dist",
+    "templates/business-loops",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "check": "tsc -p tsconfig.json && tsx scripts/check-schemas.ts && vitest run",
+    "check": "tsc -p tsconfig.json && tsx scripts/check-schemas.ts && tsx scripts/check-skills.ts && tsx scripts/check-links.ts && vitest run",
     "loopstack": "tsx src/cli.ts",
-    "schema:export": "tsx scripts/export-schemas.ts"
+    "schema:export": "tsx scripts/export-schemas.ts",
+    "prepare": "npm run build"
   },
   "dependencies": {
     "yaml": "^2.9.0",

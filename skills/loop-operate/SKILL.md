@@ -1,13 +1,6 @@
 ---
 name: loop-operate
 description: Use when a Loopstack loop must be inspected, monitored, debugged, modified, or improved from measured evidence.
-version: 0.2.0
-author: ErwanFx
-license: MIT
-metadata:
-  hermes:
-    tags: [ai-loops, operations, monitoring, debugging, improvement]
-    related_skills: [loop-launch, loop-plan]
 ---
 
 # Operate a Loop
@@ -36,11 +29,17 @@ Load only the branch needed:
 
 ## Continuous operation
 
-Read-only monitoring and inspection remain inside `loop-operate`; do not announce internal skill transitions. Record canonical health, version, target/current/gap, costs, pending approvals, alerts, follow-ups, and learnings.
+Read-only monitoring and inspection remain inside `loop-operate`; do not announce internal skill transitions. Record canonical health, version, target/current/gap, costs, pending approvals, alerts, follow-ups, and learnings. For durable processes, report work-item SLA compliance, state distribution, overdue `waiting-human` and `waiting-external` cases, pending gates, revision conflicts, and resume failures.
+
+For graph-backed loops, include node-level latency, cost, attempts, failures, waiting states, edge traversal counts, incomplete joins, and topology hash in the graph trace. Diagnose the failing layer explicitly: harness/runtime, control loop, or prompt graph. Do not add graph complexity to repair a prompt, tool, or business-policy defect.
 
 For incidents, reconstruct the timeline and classify side effects as completed, failed, or unknown. Reconcile unknown outcomes before retrying.
 
 For learning, require enough completed feedback windows. Link every proposal to evidence, expected metric change, experiment, risk, rollback, and success threshold. Do not optimize proxy volume over the business outcome.
+
+Operational learning is mandatory; self-modification is optional. Record observations and evaluations on every run, but change reusable behavior only through the lifecycle `proposed → validated → approved → promoted`, with rejection and rollback paths. Treat plugin-provided skills as read-only; a promoted Hermes learning proposal targets a separate mutable per-loop or project skill.
+
+Every improvement is proposal only until validation and approval. Never silently alter graph, prompts, skills, gates, permissions, immutable anchors, or evaluation rules. A graph topology change routes through semantic diff, graph QA, topology re-hash, plan approval, canary, and rollback evidence.
 
 ## Gates
 

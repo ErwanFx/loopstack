@@ -1,0 +1,40 @@
+schemaVersion: 3
+id: pv-admin
+name: PV administration
+version: 1
+status: designing
+architectureShape: workflow-with-control-loop
+target:
+  metric: dossier_submission_cycle_hours
+  desired: 192
+  direction: at-most
+  horizonDays: 90
+  sourceOfTruth: crm
+current:
+  value: 260
+  observedAt: 2026-08-01T00:00:00.000Z
+triggers:
+  - id: visit-validated
+    type: event
+    source: crm
+    event: technical_visit.validated
+    idempotencyKey: client_id+visit_version
+feedback:
+  - metric: administrative_rejection_rate
+    delayDays: 30
+approval:
+  mode: conditional
+  requiredFor: [submit-mairie]
+  approvers: [admin-owner]
+  gates:
+    - id: approve-mairie-submission
+      beforeAction: submit-mairie
+      risk: high
+      conditions: [official-submission]
+      evidenceArtifacts: [mairie-dossier-preview.pdf]
+      choices: [approve, edit, reject, request-information]
+      approvers: [admin-owner]
+      timeoutHours: 48
+      onTimeout: escalate
+      onReject: collecting-documents
+      resumeFrom: submit-mairie

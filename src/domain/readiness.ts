@@ -1,6 +1,7 @@
 export type ConnectionState = "connected" | "tested" | "untested" | "missing";
 
 export type ReadinessCandidate = {
+  contractVersion?: 3;
   recurringOpportunity?: boolean;
   target?: { metric?: string; desired?: number };
   currentState?: { value?: number; observedAt?: string };
@@ -20,6 +21,15 @@ export type ReadinessCandidate = {
   alertConnection?: ConnectionState;
   runSuccessCriteria?: string[];
   businessSuccessCriteria?: string[];
+  primaryTriggers?: Array<{ idempotencyKey?: string }>;
+  consequentialActions?: string[];
+  humanGates?: Array<{
+    beforeAction?: string;
+    choices?: string[];
+    timeoutHours?: number;
+    onTimeout?: "escalate" | "reject" | "pause";
+  }>;
+  guardrailActions?: Array<"pause" | "stop" | "escalate">;
   evidenceQuality?: number;
   leverage?: number;
   reversibility?: number;
@@ -58,6 +68,16 @@ const requirements: readonly Requirement[] = [
   ["tested_alert_channel", (candidate) => candidate.alertConnection === "tested"],
   ["run_success_criteria", (candidate) => nonEmpty(candidate.runSuccessCriteria)],
   ["business_success_criteria", (candidate) => nonEmpty(candidate.businessSuccessCriteria)],
+  ["primary_trigger_policy", (candidate) => candidate.contractVersion !== 3
+    || Boolean(candidate.primaryTriggers?.length
+      && candidate.primaryTriggers.every((trigger) => hasText(trigger.idempotencyKey)))],
+  ["consequential_human_gates", (candidate) => candidate.contractVersion !== 3
+    || (candidate.consequentialActions ?? []).every((action) => candidate.humanGates?.some((gate) =>
+      gate.beforeAction === action
+      && gate.choices?.includes("approve")
+      && (gate.timeoutHours ?? 0) > 0
+      && Boolean(gate.onTimeout)))],
+  ["guardrail_response", (candidate) => candidate.contractVersion !== 3 || nonEmpty(candidate.guardrailActions)],
 ] as const;
 
 const advisoryFactors = ["evidenceQuality", "leverage", "reversibility", "dataCompleteness", "measurementSpeed"] as const;

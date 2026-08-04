@@ -166,7 +166,7 @@ describe("skill handoffs", () => {
     expect(() => createHandoff(v2("loop-build", "loop-launch"))).toThrow(/Missing qa-pass/);
   });
 
-  it("rejects mismatched scope and expired authorization", () => {
+  it("rejects mismatched scope while preserving expired evidence for audit", () => {
     const mismatched = v2("loop-plan", "loop-build", ["plan-approval"]);
     mismatched.gate_evidence[0].scope_hash = "c".repeat(64);
     expect(() => createHandoff(mismatched)).toThrow(/does not match/);
@@ -178,11 +178,17 @@ describe("skill handoffs", () => {
     const expired = v2("loop-launch", "loop-operate", ["activation-approval"]);
     expired.gate_evidence[0].expires_at = "2020-01-01T00:00:00Z";
     Object.assign(expired, { activation_allowed: true });
-    expect(() => createHandoff(expired)).toThrow(/expired/);
+    expect(createHandoff(expired).gate_evidence[0].expires_at).toBe("2020-01-01T00:00:00Z");
+    expect(normalizeHandoff(expired).source.gate_evidence[0].expires_at).toBe("2020-01-01T00:00:00Z");
+    expect(() => assertGateAuthorization(createHandoff(expired), "activation-approval", trustFor(expired)))
+      .toThrow(/expired/);
+    expect(() => shouldAutoContinue(createHandoff(expired), trustFor(expired))).toThrow(/expired/);
 
     const futureApproval = v2("loop-plan", "loop-build", ["plan-approval"]);
     futureApproval.gate_evidence[0].approved_at = "2099-01-01T00:00:00Z";
-    expect(() => createHandoff(futureApproval)).toThrow(/future/);
+    expect(createHandoff(futureApproval).gate_evidence[0].approved_at).toBe("2099-01-01T00:00:00Z");
+    expect(() => assertGateAuthorization(createHandoff(futureApproval), "plan-approval", trustFor(futureApproval)))
+      .toThrow(/future/);
   });
 
   it("requires a scoped, expiring activation approval and activation flag", () => {

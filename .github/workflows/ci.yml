@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm build
+      - name: Verify packed CLI
+        run: |
+          pack_dir="$(mktemp -d)"
+          prefix_dir="$(mktemp -d)"
+          tarball="$(npm pack --pack-destination "$pack_dir" --silent)"
+          npm install --global --prefix "$prefix_dir" "$pack_dir/$tarball"
+          "$prefix_dir/bin/loopstack" --help
+          consumer_dir="$(mktemp -d)"
+          cd "$consumer_dir"
+          "$prefix_dir/bin/loopstack" init-business-repo business-loops
+          test -f business-loops/.gitignore
+          test -f business-loops/registry.yaml
+      - run: python3 -m py_compile __init__.py

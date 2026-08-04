@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { z } from "zod";
 import { HandoffSchema, LoopDefinitionSchema } from "../src/domain/schemas.js";
+import { PromptGraphDefinitionSchema } from "../src/graph/schemas.js";
 
 function sortKeys(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(sortKeys);
@@ -21,6 +22,7 @@ function expected(schema: z.ZodType): string {
 for (const [name, schema] of [
   ["loop", LoopDefinitionSchema],
   ["handoff", HandoffSchema],
+  ["graph", PromptGraphDefinitionSchema],
 ] as const) {
   const path = `schemas/${name}.schema.json`;
   if (readFileSync(path, "utf8") !== expected(schema)) {

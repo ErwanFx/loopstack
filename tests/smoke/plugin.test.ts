@@ -13,10 +13,25 @@ const publicSkills = [
 ];
 
 describe("plugin manifests", () => {
+  it("enforces skill portability and release checks in CI", () => {
+    const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
+    expect(packageJson.scripts.check).toContain("tsx scripts/check-skills.ts");
+
+    const checker = readFileSync("scripts/check-skills.ts", "utf8");
+    for (const skill of publicSkills) expect(checker).toContain(`"${skill}"`);
+    expect(checker).toContain('["description", "name"]');
+
+    const workflow = readFileSync(".github/workflows/ci.yml", "utf8");
+    expect(workflow).toContain("pnpm install --frozen-lockfile");
+    expect(workflow).toContain("pnpm check");
+    expect(workflow).toContain("pnpm build");
+    expect(workflow).toContain("python3 -m py_compile __init__.py");
+  });
+
   it("matches the repository and exposes only consolidated top-level skills", () => {
     const manifest = JSON.parse(readFileSync(".codex-plugin/plugin.json", "utf8"));
     expect(manifest.name).toBe("loopstack");
-    expect(manifest.version).toBe("0.2.0");
+    expect(manifest.version).toBe("0.4.0");
     expect(manifest.skills).toBe("./skills/");
     const discovered = readdirSync("skills", { withFileTypes: true })
       .filter((entry) => entry.isDirectory())
@@ -33,11 +48,23 @@ describe("plugin manifests", () => {
     expect(discovered).toEqual(publicSkills);
   });
 
-  it("keeps Hermes and Claude manifests on version 0.2.0", () => {
+  it("keeps Hermes and Claude manifests on version 0.4.0", () => {
     const hermes = readFileSync("plugin.yaml", "utf8");
     const claude = JSON.parse(readFileSync(".claude-plugin/plugin.json", "utf8"));
-    expect(hermes).toContain("version: 0.2.0");
-    expect(claude.version).toBe("0.2.0");
+    expect(hermes).toContain("version: 0.4.0");
+    expect(claude.version).toBe("0.4.0");
+  });
+
+  it("documents the complete orchestrated release without changing installation", () => {
+    const readme = readFileSync("README.md", "utf8");
+    expect(readme).toContain("Target → Observe state → Evaluate/Plan → Act → Observe result → Evaluate outcome → Learn → Decide");
+    expect(readme).toContain("compact six-box");
+    expect(readme).toContain("HermesRuntimeAdapter");
+    expect(readme).toContain("ClaudeCodeRuntimeAdapter");
+    expect(readme).toContain("CodexRuntimeAdapter");
+    expect(readme).toContain("photovoltaic administration");
+    expect(readme).toContain("prompt-cycle controller");
+    expect(readme).toContain("inert activation plan");
   });
 
   it("registers public skills and executable legacy aliases separately", () => {
@@ -46,18 +73,21 @@ describe("plugin manifests", () => {
       "s=importlib.util.spec_from_file_location('loopstack_plugin',pathlib.Path('__init__.py'))",
       "m=importlib.util.module_from_spec(s);s.loader.exec_module(m)",
       "class C:",
-      " def __init__(self): self.skills=[];self.aliases={}",
-      " def register_skill(self,n,p,d): self.skills.append(n)",
-      " def register_skill_alias(self,a,t): self.aliases[a]=t",
+      " def __init__(self): self.skills=[]",
+      " def register_skill(self,n,p,d): self.skills.append({'name':n,'path':str(p),'description':d})",
       "c=C();m.register(c)",
-      "print(json.dumps({'skills':c.skills,'aliases':c.aliases,'resolved':m.resolve_skill_name('loop-eric-review')}))",
+      "print(json.dumps({'skills':c.skills,'resolved':m.resolve_skill_name('loop-eric-review')}))",
     ].join("\n");
     const result = spawnSync("python3", ["-c", script], { encoding: "utf8" });
     expect(result.status, result.stderr).toBe(0);
     const registration = JSON.parse(result.stdout);
-    expect(registration.skills.sort()).toEqual(publicSkills);
-    expect(registration.aliases["loop-eric-review"]).toBe("loop-design");
-    expect(registration.aliases["loop-storage-setup"]).toBe("loop-build");
+    const names = registration.skills.map((skill: { name: string }) => skill.name);
+    expect(names.filter((name: string) => publicSkills.includes(name)).sort()).toEqual(publicSkills);
+    expect(names).toContain("loop-eric-review");
+    expect(names).toContain("loop-storage-setup");
+    const legacy = registration.skills.find((skill: { name: string }) => skill.name === "loop-eric-review");
+    expect(legacy.path).toMatch(/skills\/loop-design\/SKILL\.md$/);
+    expect(legacy.description).toMatch(/qualified AI Loop/i);
     expect(registration.resolved).toBe("loop-design");
   });
 });

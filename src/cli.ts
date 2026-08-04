@@ -1,8 +1,11 @@
+#!/usr/bin/env node
+
 import { runTransitionCommand } from "./commands/transition.js";
 import { runReadinessCommand } from "./commands/readiness.js";
 import { runValidateCommand } from "./commands/validate.js";
 import { runRuntimePreflightCommand } from "./commands/runtime-preflight.js";
 import { runRuntimeRenderCommand } from "./commands/runtime-render.js";
+import { runRuntimeValidateCommand } from "./commands/runtime-validate.js";
 import { runStoragePlanCommand } from "./commands/storage-plan.js";
 import { runStorageVerifyCommand } from "./commands/storage-verify.js";
 import { runListCommand } from "./commands/list.js";
@@ -11,8 +14,10 @@ import { runLifecycleCommand } from "./commands/lifecycle.js";
 import { runInitBusinessRepoCommand } from "./commands/init-business-repo.js";
 import { runQaCommand } from "./commands/qa.js";
 import { runMonitorCommand } from "./commands/monitor.js";
+import { runGraphCommand } from "./commands/graph.js";
+import { runPromptCycleCommand } from "./commands/prompt-cycle.js";
 
-const commands = ["validate", "transition", "readiness", "runtime", "storage", "qa", "monitor", "list", "show", "lifecycle", "init-business-repo"] as const;
+const commands = ["validate", "transition", "readiness", "runtime", "storage", "graph", "prompt-cycle", "qa", "monitor", "list", "show", "lifecycle", "init-business-repo"] as const;
 
 function printHelp(): void {
   console.log(`Loopstack\n\nCommands:\n${commands.map((command) => `  ${command}`).join("\n")}`);
@@ -48,7 +53,8 @@ if (argument === "runtime") {
   const args = process.argv.slice(4);
   if (action === "render") process.exit(await runRuntimeRenderCommand(args));
   if (action === "preflight") process.exit(await runRuntimePreflightCommand(args));
-  console.error(JSON.stringify({ code: "INVALID_ARGUMENT", message: "Use runtime render or runtime preflight" }));
+  if (action === "validate") process.exit(await runRuntimeValidateCommand(args));
+  console.error(JSON.stringify({ code: "INVALID_ARGUMENT", message: "Use runtime render, runtime validate, or runtime preflight" }));
   process.exit(2);
 }
 
@@ -60,6 +66,9 @@ if (argument === "storage") {
   console.error(JSON.stringify({ code: "INVALID_ARGUMENT", message: "Use storage plan or storage verify" }));
   process.exit(2);
 }
+
+if (argument === "graph") process.exit(runGraphCommand(process.argv.slice(3)));
+if (argument === "prompt-cycle") process.exit(await runPromptCycleCommand(process.argv.slice(3)));
 
 if (argument === "list") process.exit(runListCommand(process.argv.slice(3)));
 if (argument === "show") process.exit(runShowCommand(process.argv.slice(3)));

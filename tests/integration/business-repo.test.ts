@@ -18,6 +18,24 @@ describe("business loops repository generator", () => {
     expect(existsSync(join(target, ".git"))).toBe(false);
   });
 
+  it("loads packaged templates independently of the caller working directory", () => {
+    const originalCwd = process.cwd();
+    const caller = mkdtempSync(join(tmpdir(), "loopstack-caller-"));
+    const target = join(caller, "business-repo");
+    process.chdir(caller);
+    try {
+      const result = initBusinessRepo(target, {
+        initializeGit: false,
+        force: false,
+        approvedOverwrite: false,
+      });
+      expect(result.created).toContain("registry.yaml");
+      expect(parse(readFileSync(join(target, "registry.yaml"), "utf8"))).toMatchObject({ schemaVersion: 1 });
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+
   it("refuses a non-empty target without force and approved coverage", () => {
     const target = mkdtempSync(join(tmpdir(), "business-loops-existing-"));
     mkdirSync(join(target, "custom"));

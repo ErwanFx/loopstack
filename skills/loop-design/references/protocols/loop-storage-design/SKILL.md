@@ -11,7 +11,7 @@ Turn the approved loop design into a **visual storage architecture the owner can
 
 Two mandatory layers:
 
-1. **Visual storage blueprint** — self-contained HTML generated with Hermes skill `architecture-diagram`.
+1. **Visual storage blueprint** — self-contained HTML generated with an installed runtime-native diagram capability or a self-contained HTML/SVG fallback.
 2. **Declarative contract** — `storage.yaml` + `storage-blueprint.json`.
 
 This skill **does not** connect, provision, create tables, test-write, or activate anything.
@@ -19,14 +19,14 @@ This skill **does not** connect, provision, create tables, test-write, or activa
 ## Hard rules
 
 1. **HTML is the primary owner artifact.** YAML/JSON alone are not design-complete.
-2. Load `architecture-diagram` and build `{workspace}/loops/{loop_id}/storage-design-blueprint.html`.
+2. Detect an installed diagram capability. On Hermes, prefer `architecture-diagram`; otherwise use an equivalent skill or the runtime's normal file/code tools to build `{workspace}/loops/{loop_id}/storage-design-blueprint.html`.
 3. Show, visually and in prose:
    - source systems and their source-of-truth roles;
    - data flow into and out of the loop store;
    - provider and physical isolation boundary;
    - logical entity groups and domain projections;
    - append-only and idempotency rules;
-   - Hermes native Learn flow (operational evidence → `skill_manage` / durable memory);
+   - selected runtime Learn flow (operational evidence → versioned procedure/instruction update and/or durable facts);
    - forbidden data, retention, sensitivity, and least-privilege permissions;
    - lifecycle: design → connection check → approved setup → runtime.
 4. **Human visual gate is the exit.** Present the HTML and wait for explicit `APPROVE storage design`, changes, or reject.
@@ -52,10 +52,11 @@ For Convex/Airtable, include the shared logical entities separated by `loopId`:
 - `loops`, `loopVersions`;
 - `runs`, `events`, `observations`, `decisions`, `actions`, `actionResults`;
 - `approvals`, `evaluations`, `alerts`, `learnings`, `costs`, `heartbeats`, `toolConnections`.
+- `workItems`, `stateTransitions`, `externalSubmissions`, `deadlines`, `learningProposals` for durable business cases and governed improvement.
 
-Keep `events` and `decisions` append-only. Add domain projections only when they improve common queries without duplicating another system of truth.
+Keep `events`, `decisions`, `stateTransitions`, and `externalSubmissions` append-only. `workItems` hold current state and optimistic revision; their transition history remains separate and immutable. Store business documents in their source system: the loop store keeps only references, hashes, statuses, deadlines, evidence ids, and approval metadata. Add domain projections only when they improve common queries without duplicating another system of truth.
 
-Every run-scoped record should carry `loopId`, `runId`, timestamp and idempotency evidence where applicable.
+Every run-scoped record should carry `loopId`, `runId`, timestamp and idempotency evidence where applicable. Every durable-case record carries `loopId` and `workItemId`, so Convex and Airtable use shared tables partitioned by `loopId` rather than one table per loop. Google Sheets retains one workbook per loop with the same entity worksheets.
 
 ## Workflow
 
@@ -82,7 +83,7 @@ Define:
 - data sensitivity, retention and volume;
 - required permissions by phase;
 - do-not-store list;
-- native Learn evidence flow.
+- runtime-selected Learn evidence flow following [runtime learning adapters](../../runtime-learning.md).
 
 ### 3. Generate deterministic artifacts
 
@@ -97,7 +98,7 @@ Use Loopstack’s deterministic blueprint generator and validate with `StorageBl
 
 ### 4. Generate visual HTML
 
-1. Load `architecture-diagram`.
+1. Load an installed diagram capability when available; on Hermes, prefer `architecture-diagram`. Otherwise use the self-contained HTML/SVG fallback.
 2. Create one self-contained HTML file:
 
 ```text
@@ -166,7 +167,7 @@ handoff:
 4. Showing tables without explaining what business question they answer.
 5. Hiding the physical isolation boundary.
 6. Missing append-only/idempotency rules.
-7. Mixing Hermes durable memory with operational loop-store data.
+7. Mixing agent/project memory with operational loop-store data.
 8. Passing to connection-check before owner approval.
 9. Treating “connection missing” as failure of storage design.
 
@@ -177,9 +178,9 @@ handoff:
 - [ ] Canonical entities + justified domain projections defined
 - [ ] Append-only, idempotency, retention and permissions defined
 - [ ] SoT duplication and forbidden data prevented
-- [ ] Hermes Learn evidence flow shown
+- [ ] Runtime-selected Learn evidence flow shown
 - [ ] `storage-blueprint.json` schema-valid and non-destructive
-- [ ] Visual HTML built with `architecture-diagram`
+- [ ] Visual HTML built with an installed diagram capability or documented self-contained HTML/SVG fallback
 - [ ] HTML delivered and owner approval awaited
 - [ ] No connection/provision/write performed
 - [ ] No `loop-connection-check` until explicit approval
@@ -187,4 +188,5 @@ handoff:
 ## References
 
 - [example-storage-design-blueprint.html](references/example-storage-design-blueprint.html) — real visual storage design quality bar
-- Hermes skill `architecture-diagram` — required HTML/SVG generator
+- [runtime learning adapters](../../runtime-learning.md) — common Learn contract and runtime mappings
+- Hermes skill `architecture-diagram` — preferred HTML/SVG generator when installed

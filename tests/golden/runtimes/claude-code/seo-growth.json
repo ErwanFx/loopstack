@@ -5,14 +5,26 @@
   "version": 1,
   "skills": ["seo-growth-loop"],
   "triggers": [
-    { "type": "manual", "enabled": false },
-    { "type": "webhook", "enabled": false, "external": true },
-    { "type": "cron", "enabled": false, "external": true, "schedule": "0 8 * * 1" }
+    { "type": "manual", "enabled": false, "role": "primary" },
+    { "type": "webhook", "enabled": false, "role": "primary", "external": true },
+    { "type": "cron", "enabled": false, "role": "primary", "external": true, "schedule": "0 8 * * 1" }
   ],
   "approvalRequired": true,
   "alertPolicy": "on-failure",
-  "target": { "metric": "qualified_leads", "desired": 40, "horizonDays": 90 },
+  "target": { "metric": "qualified_leads", "desired": 40, "direction": "at-least", "horizonDays": 90 },
   "feedback": [{ "metric": "qualified_leads", "delayDays": 30 }],
+  "guardrails": [],
+  "serviceLevels": [],
+  "promptCycle": {
+    "entry": {
+      "executable": "loopstack",
+      "args": ["prompt-cycle", "run", "--loop", "loops/seo-growth"]
+    },
+    "requestContract": "AgentRunRequest",
+    "resultContract": "AgentRunResult",
+    "decisions": ["continue", "wait-human", "wait-external", "stop-success", "stop-failure", "escalate"],
+    "makerChecker": true
+  },
   "permissions": { "allow": [] },
   "externalTriggerRequirements": [
     "webhook: invoke claude with loop id and idempotency key",

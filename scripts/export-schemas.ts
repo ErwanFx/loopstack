@@ -1,6 +1,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { z } from "zod";
 import { HandoffSchema, LoopDefinitionSchema } from "../src/domain/schemas.js";
+import { PromptGraphDefinitionSchema } from "../src/graph/schemas.js";
 
 function sortKeys(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(sortKeys);
@@ -22,3 +23,4 @@ function writeSchema(name: string, schema: z.ZodType): void {
 mkdirSync("schemas", { recursive: true });
 writeSchema("loop", LoopDefinitionSchema);
 writeSchema("handoff", HandoffSchema);
+writeSchema("graph", PromptGraphDefinitionSchema);

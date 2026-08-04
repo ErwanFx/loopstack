@@ -1,0 +1,40 @@
+schemaVersion: 1
+version: 1
+loopId: pv-admin
+kind: workflow-with-control-loop
+workItem:
+  entityName: dossier
+  idField: dossierId
+initialState: collecting-documents
+gateIds:
+  - approve-mairie-submission
+states:
+  - id: collecting-documents
+    type: active
+  - id: awaiting-mairie-approval
+    type: waiting-human
+    slaHours: 48
+  - id: awaiting-mairie
+    type: waiting-external
+    slaHours: 720
+  - id: completed
+    type: terminal
+transitions:
+  - from: collecting-documents
+    event: dossier.complete
+    to: awaiting-mairie-approval
+    actor: agent
+    gateId: approve-mairie-submission
+  - from: awaiting-mairie-approval
+    event: approval.approved
+    to: awaiting-mairie
+    actor: human
+    action: submit-mairie
+  - from: awaiting-mairie-approval
+    event: approval.rejected
+    to: collecting-documents
+    actor: human
+  - from: awaiting-mairie
+    event: mairie.accepted
+    to: completed
+    actor: external

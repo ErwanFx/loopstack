@@ -6,6 +6,7 @@ import { LoopDefinitionSchema } from "../../src/domain/schemas.js";
 import { buildRegistry } from "../../src/operations/registry.js";
 import { runQa } from "../../src/qa/runner.js";
 import { ClaudeCodeRuntimeAdapter } from "../../src/runtimes/claude-code.js";
+import { CodexRuntimeAdapter } from "../../src/runtimes/codex.js";
 import { HermesRuntimeAdapter } from "../../src/runtimes/hermes.js";
 import { normalizeRuntimePackage } from "../../src/runtimes/normalize.js";
 import { createStorageBlueprint } from "../../src/storage/blueprints.js";
@@ -19,7 +20,11 @@ describe("SEO loop shadow lifecycle", () => {
     const loop = LoopDefinitionSchema.parse(parse(readFileSync(`${root}/loop.yaml`, "utf8")));
     const hermes = await new HermesRuntimeAdapter().render({ loop });
     const claude = await new ClaudeCodeRuntimeAdapter().render({ loop });
+    const codex = await new CodexRuntimeAdapter().render({ loop });
     expect(normalizeRuntimePackage(hermes)).toEqual(normalizeRuntimePackage(claude));
+    expect(normalizeRuntimePackage(hermes)).toEqual(normalizeRuntimePackage(codex));
+    expect(loop.schemaVersion).toBe(3);
+    expect(loop.triggers.every((trigger) => trigger.enabled === false)).toBe(true);
 
     const plan = createProvisioningPlan(createStorageBlueprint("convex", loop.id), "shadow", "2026-08-02T12:00:00.000Z", "schema");
     const approval = approveProvisioningPlan(plan, "erwan", "2026-08-01T12:00:00.000Z");

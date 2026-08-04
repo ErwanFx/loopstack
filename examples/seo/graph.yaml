@@ -1,0 +1,152 @@
+schemaVersion: 1
+id: seo-content-graph
+loopId: seo-content
+version: 1
+executionMode: single-agent-multi-session
+entrypoint: load-seed
+
+agents:
+  - id: seo-operator
+    runtime: portable
+    profile: ecoi-seo
+    description: One reusable SEO agent profile; every node starts a fresh session.
+    sessionPolicy: fresh
+    maxConcurrency: 1
+    requiredSkills: [seo-research, seo-writing, seo-review]
+    requiredTools: [openseo, cms, analytics]
+
+budgets:
+  maxSteps: 24
+  maxCost: 20
+  maxDurationSeconds: 7200
+  maxConcurrency: 1
+  maxRetriesPerNode: 1
+
+nodes:
+  - id: load-seed
+    kind: tool
+    purpose: Load the business offer, audience, and verified source material.
+    toolRef: business-context.load
+    inputs: []
+    outputs: [business-seed]
+
+  - id: keyword-research
+    kind: agent
+    purpose: Find and prioritize keywords with OpenSEO using the verified business seed.
+    agentId: seo-operator
+    role: operator
+    promptRef: prompts/keyword-research.md
+    session: fresh
+    skills: [seo-research]
+    tools: [openseo]
+    inputs: [business-seed]
+    outputs: [keyword-brief]
+
+  - id: write-article
+    kind: agent
+    purpose: Write or correct one article from the keyword brief and reviewer feedback.
+    agentId: seo-operator
+    role: operator
+    promptRef: prompts/article-writing.md
+    session: fresh
+    skills: [seo-writing]
+    inputs: [keyword-brief, review-decision]
+    outputs: [article-draft]
+
+  - id: review-article
+    kind: evaluator
+    purpose: Evaluate usefulness, factual grounding, intent match, and SEO quality in a fresh context.
+    mode: ai
+    agentId: seo-operator
+    promptRef: prompts/seo-review.md
+    session: fresh
+    criteria: [search-intent, factual-grounding, reader-value, seo-quality]
+    inputs: [article-draft]
+    outputs: [review-decision]
+
+  - id: approve-publication
+    kind: human-gate
+    purpose: Let the owner approve the consequential first publication.
+    gateId: seo-publication
+    inputs: [review-decision]
+    outputs: [publication-approval]
+
+  - id: publish
+    kind: tool
+    purpose: Publish the approved article once through the CMS.
+    toolRef: cms.publish
+    inputs: [article-draft, publication-approval]
+    outputs: [publication-record]
+    resourceLocks: [cms:primary-site]
+    sideEffect: consequential
+    idempotencyKeyRef: publication-record.idempotencyKey
+
+  - id: measure
+    kind: tool
+    purpose: Collect delayed rankings, clicks, qualified visits, and conversions.
+    toolRef: analytics.collect-seo-window
+    inputs: [publication-record]
+    outputs: [seo-feedback]
+
+  - id: improve
+    kind: agent
+    purpose: Propose one tested loop change from accumulated SEO feedback; never self-apply it.
+    agentId: seo-operator
+    role: improver
+    promptRef: prompts/improve.md
+    session: fresh
+    skills: [seo-review]
+    inputs: [seo-feedback]
+    outputs: [learning-proposal]
+
+edges:
+  - from: load-seed
+    to: keyword-research
+    type: data
+    artifact: business-seed
+  - from: keyword-research
+    to: write-article
+    type: data
+    artifact: keyword-brief
+  - from: write-article
+    to: review-article
+    type: data
+    artifact: article-draft
+  - from: review-article
+    to: write-article
+    type: data
+    artifact: review-decision
+    when: { path: artifacts.review-decision.status, operator: eq, value: revise }
+    maxTraversals: 2
+  - from: review-article
+    to: approve-publication
+    type: data
+    artifact: review-decision
+    when: { path: artifacts.review-decision.status, operator: eq, value: approved }
+  - from: approve-publication
+    to: publish
+    type: data
+    artifact: publication-approval
+  - from: publish
+    to: measure
+    type: data
+    artifact: publication-record
+  - from: measure
+    to: improve
+    type: data
+    artifact: seo-feedback
+
+anchors:
+  - id: verified-business-context
+    nodeId: load-seed
+    evidence: Approved offer, audience, legal claims, and source URLs.
+    immutable: true
+
+improvement:
+  enabled: true
+  nodeId: improve
+  feedbackArtifacts: [seo-feedback]
+  evaluationSuiteRef: qa/seo-graph.yaml
+  protectedNodeIds: [load-seed]
+  proposalPolicy: human-approved
+  minFeedbackWindows: 3

@@ -56,14 +56,16 @@ def _description_from_skill_md(path: Path) -> str:
 
 
 def register(ctx) -> None:
-    """Register only Loopstack's public workflow surface."""
+    """Register public workflows and executable v1 compatibility names."""
     skills_root = Path(__file__).resolve().parent / "skills"
     for name in PUBLIC_SKILLS:
         skill_md = skills_root / name / "SKILL.md"
         if not skill_md.is_file():
             raise FileNotFoundError(f"Missing public Loopstack skill: {skill_md}")
         ctx.register_skill(name, skill_md, _description_from_skill_md(skill_md))
-    register_alias = getattr(ctx, "register_skill_alias", None)
-    if callable(register_alias):
-        for legacy_name, public_name in LEGACY_SKILL_ALIASES.items():
-            register_alias(legacy_name, public_name)
+    # Hermes exposes register_skill, not a separate alias API. Register each
+    # persisted v1 name against the consolidated workflow's real SKILL.md so
+    # old handoffs remain executable after upgrading the plugin.
+    for legacy_name, public_name in LEGACY_SKILL_ALIASES.items():
+        skill_md = skills_root / public_name / "SKILL.md"
+        ctx.register_skill(legacy_name, skill_md, _description_from_skill_md(skill_md))

@@ -1,13 +1,6 @@
 ---
 name: loop-discover
 description: Use when a new or materially changed process must be evidenced, classified, and checked for AI Loop readiness.
-version: 0.2.0
-author: ErwanFx
-license: MIT
-metadata:
-  hermes:
-    tags: [ai-loops, discovery, qualification, readiness]
-    related_skills: [using-loopstack, loop-design]
 ---
 
 # Discover a Loop
@@ -25,14 +18,16 @@ Load only when needed:
 
 ## Process
 
-1. Inspect existing context, artifacts, systems, and the last real unit of work.
+1. Inspect existing context, artifacts, systems, and the last real work item end to end.
 2. Ask one question at a time only when evidence cannot be retrieved.
 3. Verify named systems and pull a real baseline sample where possible.
 4. Define outcome, source of truth, current state, horizon, constraints, owner, and human gates.
 5. Compare at least two approaches, including a simpler non-loop option.
-6. Classify the process.
-7. If it is an AI Loop, run readiness immediately.
-8. Write discovery, qualification, readiness, runtime-skill map, and one consolidated handoff.
+6. Classify the process and, for an AI Loop, select its architecture shape: `control-loop`, `workflow-with-control-loop`, or `multi-loop-system`.
+7. Select the least complex execution mode: `deterministic-with-ai-improvement`, `single-agent-multi-session` (default), or `multi-agent` only when distinct permissions, models, owners, or genuinely concurrent roles require it.
+8. Record graph necessity evidence. A graph is justified only by real branching, joins, bounded correction cycles, parallel work, human waits, or recovery dependencies; a short linear sequence does not need one.
+9. If it is an AI Loop, run readiness immediately.
+10. Write discovery, qualification, readiness, runtime-skill map, execution mode, graph-necessity decision, and one consolidated handoff.
 
 Readiness blockers prevent activation, not design. State that distinction clearly.
 
@@ -50,6 +45,8 @@ Stop only when:
 ## Completion criteria
 
 - classification is explicit and evidenced;
+- architecture shape is explicit for every AI Loop;
+- execution mode and graph necessity are explicit for every AI Loop;
 - baseline is measured, qualified as estimated, or explicitly unknown;
 - sources of truth and activation blockers are named;
 - v1 human gates and progressive autonomy criteria are captured;

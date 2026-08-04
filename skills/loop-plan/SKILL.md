@@ -1,13 +1,6 @@
 ---
 name: loop-plan
 description: Use when an approved Loopstack design is ready for an exact, versioned implementation plan and authorization boundary.
-version: 0.2.0
-author: ErwanFx
-license: MIT
-metadata:
-  hermes:
-    tags: [ai-loops, planning, tdd, approvals]
-    related_skills: [loop-design, loop-build]
 ---
 
 # Plan a Loop
@@ -29,6 +22,11 @@ Include:
 7. unit, contract, failure, alert, idempotency, shadow, canary, rollback, and E2E tests;
 8. monitoring, ownership, budgets, recovery, and kill switch;
 9. exact out-of-scope actions.
+10. work-item state machine, optimistic revision, idempotent resume triggers, and waiting-state SLAs;
+11. prompt-cycle controller requests/results/checkpoints, maker/checker permissions, limits, reconciliation, and restart behavior;
+12. governed learning-proposal tests and runtime-specific mutable target.
+13. when `graph.yaml` exists: compiler validation, topology hash pinning, branch/join/cycle/checkpoint tests, fake-edge/resource review, and explicit graph QA;
+14. runtime bindings: Hermes one-profile fresh sessions with `maxConcurrency: 1`, optional Claude Code dynamic workflows, and a Claude Code/Codex sequential fallback.
 
 ## Task sizing
 

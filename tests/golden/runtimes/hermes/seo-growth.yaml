@@ -7,20 +7,44 @@ skills:
 triggers:
   - type: manual
     enabled: false
+    role: primary
   - type: webhook
     enabled: false
+    role: primary
   - type: schedule
     enabled: false
+    role: primary
     schedule: "0 8 * * 1"
 approvalRequired: true
 alertPolicy: on-failure
 target:
   metric: qualified_leads
   desired: 40
+  direction: at-least
   horizonDays: 90
 feedback:
   - metric: qualified_leads
     delayDays: 30
+guardrails: []
+serviceLevels: []
+promptCycle:
+  entry:
+    executable: loopstack
+    args:
+      - prompt-cycle
+      - run
+      - --loop
+      - loops/seo-growth
+  requestContract: AgentRunRequest
+  resultContract: AgentRunResult
+  decisions:
+    - continue
+    - wait-human
+    - wait-external
+    - stop-success
+    - stop-failure
+    - escalate
+  makerChecker: true
 webhook:
   route: /loopstack/seo-growth
   secretEnv: LOOPSTACK_SEO_GROWTH_WEBHOOK_SECRET

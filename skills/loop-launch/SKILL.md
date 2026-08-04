@@ -1,13 +1,6 @@
 ---
 name: loop-launch
 description: Use when a built AI Loop has passing QA and needs an approval-gated shadow, canary, or active rollout.
-version: 0.2.0
-author: ErwanFx
-license: MIT
-metadata:
-  hermes:
-    tags: [ai-loops, deployment, shadow, canary, rollback]
-    related_skills: [loop-build, loop-operate]
 ---
 
 # Launch a Loop
@@ -30,9 +23,12 @@ Require:
 - verified connections and actual alert placement;
 - tested attribution required by the north-star metric;
 - owner, kill switch, rollback, and budget;
+- when a graph exists, a compiler-valid artifact whose topology hash matches the approved design, build, and QA evidence;
 - explicit activation approval for the requested stage.
 
 Do not accept scheduler creation, command success, or a numeric score as proof of external readiness.
+
+Render and review an inert activation plan before mutation. Only this skill may execute its argument-array operations after fresh activation approval; verify the controller entry command, disabled typed triggers, HMAC/idempotency, delivery target, list/test checks, and removal commands first.
 
 ## Rollout
 

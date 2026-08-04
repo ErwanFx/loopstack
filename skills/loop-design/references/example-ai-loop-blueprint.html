@@ -303,16 +303,15 @@
         <tr><td>weekly_snapshots</td><td>loop store</td><td>tendances même si API bouge</td></tr>
         <tr><td>GSC URL @ 7/14/30/90j</td><td>OpenSEO + snapshot</td><td>keep / improve / kill</td></tr>
         <tr><td>leads par utm_content</td><td>Velora</td><td>quel contenu convertit</td></tr>
-        <tr><td>Patterns récurrents / corrections explicites</td><td>Hermes <code>skill_manage</code></td><td>patcher <code>ecoi-seo</code> ou créer une procédure réutilisable</td></tr>
-        <tr><td>Préférences / contraintes durables</td><td>Hermes memory</td><td>conserver le contexte stable, jamais les logs ou métriques transitoires</td></tr>
+        <tr><td>Patterns récurrents / corrections explicites</td><td>Adaptateur Learn du runtime</td><td>versionner un patch <code>ecoi-seo</code>, une instruction ou une procédure réutilisable</td></tr>
+        <tr><td>Préférences / contraintes durables</td><td>Mémoire agent/projet si disponible</td><td>conserver le contexte stable, jamais les logs ou métriques transitoires</td></tr>
       </table>
       <div class="card" style="margin-top:12px;border-color:rgba(52,211,153,.35)">
-        <h3><span class="pill t-learn"></span> Hermes native learning — obligatoire</h3>
+        <h3><span class="pill t-learn"></span> Adaptateur Learn du runtime — obligatoire</h3>
         <ul>
           <li><strong>Loop store</strong> : état opérationnel, traces, scores, snapshots et gate events.</li>
-          <li><strong><code>skill_manage</code></strong> : transforme un pattern récurrent ou une correction explicite en procédure réutilisable.</li>
-          <li><strong>Memory</strong> : uniquement faits, préférences et contraintes durables — jamais progression, secrets ou logs de run.</li>
-          <li><strong>Journey / Curator</strong> : audit et entretien optionnels des apprentissages.</li>
+          <li><strong>Procédure versionnée</strong> : transforme un pattern récurrent ou une correction explicite en skill, instruction ou playbook réutilisable.</li>
+          <li><strong>Mémoire agent/projet</strong> : uniquement faits, préférences et contraintes durables — jamais progression, secrets ou logs de run.</li>
           <li>Anti-bruit : ne pas apprendre d’un incident isolé, sauf correction explicite d’Erwan.</li>
         </ul>
       </div>
@@ -405,7 +404,7 @@
             <li><code>schema</code> · <code>site-architecture</code></li>
             <li><code>seo-audit</code> · <code>on-page-seo-auditor</code> · <code>seo-aeo-audit</code></li>
             <li><code>analytics</code> · <code>link-prospecting</code> (post)</li>
-            <li><code>Hermes native learning</code> — <code>skill_manage</code> + memory dans Learn (obligatoire)</li>
+            <li><code>runtime learning adapter</code> — procédure versionnée + faits durables dans Learn (obligatoire)</li>
           </ul>
         </div>
       </div>
@@ -417,7 +416,7 @@
         <tr><td>Draft 11 + polish</td><td>ecoi-seo · copywriting · ai-seo · seo-aeo-best-practices · humanizer · copy-editing · geo-optimizer</td></tr>
         <tr><td>12–15 visuels</td><td>ecoi-seo</td></tr>
         <tr><td>16–18 code</td><td>ecoi-seo · schema · site-architecture · on-page-seo-auditor · seo-aeo-audit</td></tr>
-        <tr><td>19–21 + learn</td><td>ecoi-seo · analytics · (link-prospecting) · Hermes skill_manage + memory · patch ecoi-seo</td></tr>
+        <tr><td>19–21 + learn</td><td>ecoi-seo · analytics · (link-prospecting) · adaptateur Learn du runtime · patch versionné ecoi-seo</td></tr>
       </table>
       <p style="color:var(--muted);font-size:10px;margin:10px 0 0">
         Installés pour la loop : seo-aeo-best-practices · seo-aeo-audit · geo-optimizer · on-page-seo-auditor · seo-content-brief (+ stack déjà présente).
