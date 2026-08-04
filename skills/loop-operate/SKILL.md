@@ -35,6 +35,8 @@ For incidents, reconstruct the timeline and classify side effects as completed, 
 
 For learning, require enough completed feedback windows. Link every proposal to evidence, expected metric change, experiment, risk, rollback, and success threshold. Do not optimize proxy volume over the business outcome.
 
+Operational learning is mandatory; self-modification is optional. Record observations and evaluations on every run, but change reusable behavior only through the lifecycle `proposed → validated → approved → promoted`, with rejection and rollback paths. Treat plugin-provided skills as read-only; a promoted Hermes learning proposal targets a separate mutable per-loop or project skill.
+
 ## Gates
 
 Stop for:

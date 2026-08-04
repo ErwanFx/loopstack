@@ -49,6 +49,9 @@ describe("portable Loopstack skills", () => {
       "Anti-noise",
       "Exclusions",
     ]) expect(learning).toContain(requirement);
+    expect(learning).toContain("Operational learning is mandatory; self-modification is optional");
+    expect(learning).toContain("plugin-provided skills are read-only");
+    expect(learning).toContain("promoted learning proposal");
   });
 
   it("does not require Hermes-only capabilities for non-Hermes loop designs", () => {
