@@ -23,13 +23,14 @@ const loop = LoopDefinitionSchema.parse({
 });
 
 const exactCronJob = {
-  job_id: "opaque-job-123",
+  id: "opaque-job-123",
   name: "loopstack:default:seo-growth:v1:cron-3",
-  schedule: "0 8 * * 1",
+  schedule: { kind: "cron", expr: "0 8 * * 1", display: "0 8 * * 1" },
+  enabled: true,
   skills: ["seo-growth-loop"],
   workdir: resolve("loops/seo-growth"),
 };
-const cronInventory = (jobs: unknown[]) => JSON.stringify({ success: true, count: jobs.length, jobs });
+const cronReader = (jobs: unknown) => ({ listJobs: async () => jobs });
 
 describe("Hermes runtime adapter", () => {
   it("renders disabled manual, webhook, and schedule triggers safely", async () => {
@@ -135,45 +136,133 @@ describe("Hermes runtime adapter", () => {
     expect(result.blockers).toContain("cron_gateway");
   });
 
-  it("blocks cron readiness when structured host inspection finds no linked job", async () => {
+  it("blocks cron readiness when no host inventory reader is injected", async () => {
     const commands: string[][] = [];
     const adapter = new HermesRuntimeAdapter(async (command, args) => {
       commands.push([command, ...args]);
-      if (args.join(" ") === "cron list --all") return { exitCode: 0, stdout: cronInventory([]), stderr: "" };
       if (args.join(" ") === "skills list --enabled-only") return { exitCode: 0, stdout: "seo-growth-loop\n", stderr: "" };
       return { exitCode: 0, stdout: "default\n", stderr: "" };
     });
     const result = await adapter.preflight({ loop, requiredSkills: ["seo-growth-loop"], requiredTools: [] });
-    expect(commands).toContainEqual(["hermes", "cron", "list", "--all"]);
+    expect(commands.filter((command) => command.includes("cron"))).toEqual([]);
     expect(result.triggerSupport.cron).toBe(false);
-    expect(result.blockers).toContain("cron_job:cron-3");
+    expect(result.blockers).toContain("cron_inventory");
+  });
+
+  it("rejects actual Hermes CLI text returned by the structured provider boundary", async () => {
+    const adapter = new HermesRuntimeAdapter(
+      async () => ({ exitCode: 0, stdout: "seo-growth-loop\ndefault\n", stderr: "" }),
+      cronReader("ID  Name  Schedule  Enabled\nopaque-job-123  loopstack job  0 8 * * 1  yes\n"),
+    );
+    const result = await adapter.preflight({ loop, requiredSkills: ["seo-growth-loop"], requiredTools: [] });
+    expect(result.triggerSupport.cron).toBe(false);
+    expect(result.blockers).toContain("cron_inventory");
   });
 
   it("rejects a plausible cron job not bound to the exact loop version", async () => {
-    const adapter = new HermesRuntimeAdapter(async (_command, args) => {
-      if (args.join(" ") === "cron list --all") {
-        return { exitCode: 0, stdout: cronInventory([{ ...exactCronJob, name: "loopstack:default:seo-growth:v2:cron-3" }]), stderr: "" };
-      }
-      if (args.join(" ") === "skills list --enabled-only") return { exitCode: 0, stdout: "seo-growth-loop\n", stderr: "" };
-      return { exitCode: 0, stdout: "default\n", stderr: "" };
-    });
+    const adapter = new HermesRuntimeAdapter(
+      async () => ({ exitCode: 0, stdout: "seo-growth-loop\ndefault\n", stderr: "" }),
+      cronReader([{ ...exactCronJob, name: "loopstack:default:seo-growth:v2:cron-3" }]),
+    );
     const result = await adapter.preflight({ loop, requiredSkills: ["seo-growth-loop"], requiredTools: [] });
     expect(result.triggerSupport.cron).toBe(false);
     expect(result.blockers).toContain("cron_job:cron-3");
   });
 
-  it("accepts only an exact structured cron job and observes its opaque removal id", async () => {
+  it("rejects disabled, malformed, and ambiguous cron inventory records", async () => {
+    const runner = async () => ({ exitCode: 0, stdout: "seo-growth-loop\ndefault\n", stderr: "" });
+    const inventories = [
+      [{ ...exactCronJob, enabled: false }],
+      [{ ...exactCronJob, unexpected: true }],
+      [exactCronJob, { ...exactCronJob, id: "opaque-job-456" }],
+    ];
+
+    for (const inventory of inventories) {
+      const result = await new HermesRuntimeAdapter(runner, cronReader(inventory)).preflight({
+        loop,
+        requiredSkills: ["seo-growth-loop"],
+        requiredTools: [],
+      });
+      expect(result.triggerSupport.cron).toBe(false);
+    }
+  });
+
+  it("accepts one exact structured cron job without invoking cron CLI commands", async () => {
     const commands: string[][] = [];
-    const adapter = new HermesRuntimeAdapter(async (command, args) => {
+    const runner = async (command: string, args: readonly string[]) => {
       commands.push([command, ...args]);
-      if (args.join(" ") === "cron list --all") return { exitCode: 0, stdout: cronInventory([exactCronJob]), stderr: "" };
       if (args.join(" ") === "skills list --enabled-only") return { exitCode: 0, stdout: "seo-growth-loop\n", stderr: "" };
       return { exitCode: 0, stdout: "default\n", stderr: "" };
-    });
+    };
+    const adapter = new HermesRuntimeAdapter(runner, cronReader([exactCronJob]));
     const result = await adapter.preflight({ loop, requiredSkills: ["seo-growth-loop"], requiredTools: [] });
     expect(result.triggerSupport.cron).toBe(true);
     expect(result.blockers).not.toContain("cron_job:cron-3");
-    expect(commands.some((command) => command.includes("create") || command.includes("update"))).toBe(false);
+    expect(commands.filter((command) => command.includes("cron"))).toEqual([]);
+  });
+
+  it("rejects duplicate job ids globally even when only one record is an exact match", async () => {
+    const duplicateAlias = {
+      ...exactCronJob,
+      name: "unrelated-host-job",
+      schedule: { ...exactCronJob.schedule, expr: "0 1 * * *", display: "0 1 * * *" },
+    };
+    const adapter = new HermesRuntimeAdapter(
+      async () => ({ exitCode: 0, stdout: "seo-growth-loop\ndefault\n", stderr: "" }),
+      cronReader([exactCronJob, duplicateAlias]),
+    );
+
+    const result = await adapter.preflight({ loop, requiredSkills: ["seo-growth-loop"], requiredTools: [] });
+
+    expect(result.triggerSupport.cron).toBe(false);
+    expect(result.blockers).toContain("cron_inventory");
+  });
+
+  it("rejects duplicate expected cron trigger ids in the activation plan", async () => {
+    const duplicateTriggerLoop = LoopDefinitionSchema.parse({
+      ...loop,
+      triggers: [
+        { id: "shared", type: "cron", configuration: { schedule: "0 8 * * 1" } },
+        { id: "shared", type: "cron", configuration: { schedule: "0 8 * * 1" } },
+      ],
+    });
+    const sharedJob = { ...exactCronJob, name: "loopstack:default:seo-growth:v1:shared" };
+    const adapter = new HermesRuntimeAdapter(
+      async () => ({ exitCode: 0, stdout: "seo-growth-loop\ndefault\n", stderr: "" }),
+      cronReader([sharedJob]),
+    );
+
+    const result = await adapter.preflight({ loop: duplicateTriggerLoop, requiredSkills: ["seo-growth-loop"], requiredTools: [] });
+
+    expect(result.triggerSupport.cron).toBe(false);
+    expect(result.blockers).toContain("cron_job:shared");
+  });
+
+  it("rejects two distinct triggers mapped to the same opaque job id", async () => {
+    const twoTriggerLoop = LoopDefinitionSchema.parse({
+      ...loop,
+      triggers: [
+        { id: "first", type: "cron", configuration: { schedule: "0 8 * * 1" } },
+        { id: "second", type: "cron", configuration: { schedule: "0 9 * * 1" } },
+      ],
+    });
+    const jobs = [
+      { ...exactCronJob, name: "loopstack:default:seo-growth:v1:first" },
+      {
+        ...exactCronJob,
+        name: "loopstack:default:seo-growth:v1:second",
+        schedule: { kind: "cron", expr: "0 9 * * 1", display: "Mondays at 09:00" },
+      },
+    ];
+    const adapter = new HermesRuntimeAdapter(
+      async () => ({ exitCode: 0, stdout: "seo-growth-loop\ndefault\n", stderr: "" }),
+      cronReader(jobs),
+    );
+
+    const result = await adapter.preflight({ loop: twoTriggerLoop, requiredSkills: ["seo-growth-loop"], requiredTools: [] });
+
+    expect(result.triggerSupport.cron).toBe(false);
+    expect(result.blockers).toContain("cron_inventory");
   });
 
   it("reuses one Hermes profile in fresh sequential sessions", async () => {
@@ -192,18 +281,19 @@ describe("Hermes runtime adapter", () => {
     }
   });
 
-  it("scopes read-only preflight commands to the selected Hermes profile", async () => {
+  it("scopes read-only preflight commands and inventory reads to the selected Hermes profile", async () => {
     const commands: string[][] = [];
+    const profiles: Array<string | undefined> = [];
     const adapter = new HermesRuntimeAdapter(async (command, args) => {
       commands.push([command, ...args]);
-      if (args.includes("cron")) return {
-        exitCode: 0,
-        stdout: cronInventory([{ ...exactCronJob, name: "loopstack:ecoi-seo:seo-growth:v1:cron-3" }]),
-        stderr: "",
-      };
       if (args.includes("skills")) return { exitCode: 0, stdout: "seo-growth-loop\n", stderr: "" };
       if (args.includes("tools")) return { exitCode: 0, stdout: "✓ enabled web\n", stderr: "" };
       return { exitCode: 0, stdout: "ecoi-seo\n", stderr: "" };
+    }, {
+      listJobs: async (profile) => {
+        profiles.push(profile);
+        return [{ ...exactCronJob, name: "loopstack:ecoi-seo:seo-growth:v1:cron-3" }];
+      },
     });
 
     const result = await adapter.preflight({
@@ -216,6 +306,8 @@ describe("Hermes runtime adapter", () => {
     expect(commands).toContainEqual(["hermes", "-p", "ecoi-seo", "gateway", "status"]);
     expect(commands).toContainEqual(["hermes", "-p", "ecoi-seo", "skills", "list", "--enabled-only"]);
     expect(commands).toContainEqual(["hermes", "-p", "ecoi-seo", "tools", "list"]);
+    expect(commands.filter((command) => command.includes("cron"))).toEqual([]);
+    expect(profiles).toEqual(["ecoi-seo"]);
     expect(result.blockers).toEqual([]);
   });
 

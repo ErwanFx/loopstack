@@ -17,17 +17,24 @@ import { hermesHasEnabledTool, listHasExactIdentifier } from "./preflight-inspec
 import { addPackageIntegrityManifest, validatePackageIntegrity } from "./package-integrity.js";
 import { z } from "zod";
 
-const HermesCronInventorySchema = z.object({
-  success: z.literal(true),
-  count: z.number().int().nonnegative().optional(),
-  jobs: z.array(z.object({
-    job_id: z.string().min(1),
-    name: z.string().min(1),
-    schedule: z.string().min(1),
-    skills: z.array(z.string().min(1)),
-    workdir: z.string().min(1),
-  }).passthrough()),
-}).passthrough();
+const HermesCronJobSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  schedule: z.object({
+    kind: z.string().min(1),
+    expr: z.string().min(1),
+    display: z.string().min(1),
+  }).strict(),
+  enabled: z.boolean(),
+  skills: z.array(z.string().min(1)),
+  workdir: z.string().min(1),
+}).strict();
+
+const HermesCronInventorySchema = z.array(HermesCronJobSchema);
+
+export interface HermesCronInventoryReader {
+  listJobs(profile?: string): Promise<unknown>;
+}
 
 function commandArgument(args: readonly string[], flag: string): string | undefined {
   const index = args.indexOf(flag);
@@ -76,7 +83,10 @@ function selectedProfile(input: {
 export class HermesRuntimeAdapter implements RuntimeAdapter {
   readonly name = "hermes" as const;
 
-  constructor(private readonly runner: CommandRunner = unavailableRunner) {}
+  constructor(
+    private readonly runner: CommandRunner = unavailableRunner,
+    private readonly cronInventoryReader?: HermesCronInventoryReader,
+  ) {}
 
   async render(input: RuntimeRenderInput): Promise<HermesRenderedPackage> {
     const { loop } = input;
@@ -166,11 +176,15 @@ export class HermesRuntimeAdapter implements RuntimeAdapter {
       ...(profileName === undefined ? {} : { profile: profileName }),
     });
     const cronPlans = activationPlan.triggers.filter((trigger) => trigger.type === "cron");
-    const [cli, profile, gateway, cron, skills, tools, webhook] = await Promise.all([
+    const cronTriggerIds = cronPlans.map((trigger) => trigger.id);
+    const uniqueCronTriggerIds = new Set(cronTriggerIds);
+    const duplicateCronTriggerIds = new Set(
+      cronTriggerIds.filter((triggerId, index) => cronTriggerIds.indexOf(triggerId) !== index),
+    );
+    const [cli, profile, gateway, skills, tools, webhook] = await Promise.all([
       this.runner("hermes", ["--help"]),
       this.runner("hermes", ["profile", "list"]),
       this.runner("hermes", scoped(["gateway", "status"])),
-      this.runner("hermes", scoped(["cron", "list", "--all"])),
       this.runner("hermes", scoped(["skills", "list", "--enabled-only"])),
       this.runner("hermes", scoped(["tools", "list"])),
       this.runner("hermes", scoped(["webhook", "list"])),
@@ -182,39 +196,50 @@ export class HermesRuntimeAdapter implements RuntimeAdapter {
     if (input.requiredTools.length > 0 && tools.exitCode !== 0) blockers.push("required_tools");
     const webhookOutput = `${webhook.stdout}\n${webhook.stderr}`;
     let cronInventory: z.infer<typeof HermesCronInventorySchema> | null = null;
-    if (cron.exitCode === 0) {
+    if (cronPlans.length > 0 && this.cronInventoryReader !== undefined) {
       try {
-        const parsed = HermesCronInventorySchema.safeParse(JSON.parse(cron.stdout));
-        if (parsed.success && (parsed.data.count === undefined || parsed.data.count === parsed.data.jobs.length)) {
-          cronInventory = parsed.data;
+        const parsed = HermesCronInventorySchema.safeParse(await this.cronInventoryReader.listJobs(profileName));
+        if (parsed.success) {
+          const jobIds = new Set(parsed.data.map((job) => job.id));
+          if (jobIds.size === parsed.data.length) cronInventory = parsed.data;
         }
-      } catch { /* non-JSON host output fails closed */ }
+      } catch { /* unavailable or malformed host inventory fails closed */ }
     }
-    const exactCronJobs = new Map<string, boolean>();
+    const matchedCronJobIds = new Map<string, string>();
     for (const trigger of cronPlans) {
       const createIndex = trigger.activation.args.indexOf("create");
       const expectedSchedule = createIndex < 0 ? undefined : trigger.activation.args[createIndex + 1];
       const expectedName = commandArgument(trigger.activation.args, "--name");
       const expectedWorkdir = commandArgument(trigger.activation.args, "--workdir");
-      const matches = cronInventory?.jobs.filter((job) => job.name === expectedName
-        && job.schedule === expectedSchedule
+      const matches = cronInventory?.filter((job) => job.name === expectedName
+        && job.schedule.kind === "cron"
+        && job.schedule.expr === expectedSchedule
+        && job.enabled
         && job.workdir === expectedWorkdir
         && arraysEqual(job.skills, activationPlan.skills)
-        && job.job_id !== job.name
-        && job.job_id !== trigger.id) ?? [];
-      exactCronJobs.set(trigger.id, matches.length === 1);
+        && job.id !== job.name
+        && job.id !== trigger.id) ?? [];
+      if (!duplicateCronTriggerIds.has(trigger.id) && matches.length === 1) {
+        matchedCronJobIds.set(trigger.id, matches[0].id);
+      }
     }
+    const matchedJobIds = [...matchedCronJobIds.values()];
+    const globallyUniqueMatches = new Set(matchedJobIds).size === matchedJobIds.length;
     const cronReady = gateway.exitCode === 0
       && cronInventory !== null
-      && cronPlans.every((trigger) => exactCronJobs.get(trigger.id) === true);
+      && globallyUniqueMatches
+      && cronPlans.every((trigger) => matchedCronJobIds.has(trigger.id));
     const webhookReady = gateway.exitCode === 0
       && webhook.exitCode === 0
       && !/not enabled|disabled/i.test(webhookOutput);
     if (cronPlans.length > 0) {
       if (gateway.exitCode !== 0) blockers.push("cron_gateway");
       if (cronInventory === null) blockers.push("cron_inventory");
-      for (const trigger of cronPlans) {
-        if (exactCronJobs.get(trigger.id) !== true) blockers.push(`cron_job:${trigger.id}`);
+      for (const triggerId of uniqueCronTriggerIds) {
+        const matchedJobId = matchedCronJobIds.get(triggerId);
+        if (matchedJobId === undefined || matchedJobIds.indexOf(matchedJobId) !== matchedJobIds.lastIndexOf(matchedJobId)) {
+          blockers.push(`cron_job:${triggerId}`);
+        }
       }
     }
     if (input.loop.triggers.some((trigger) => trigger.type === "webhook") && !webhookReady) blockers.push("webhook_gateway");
