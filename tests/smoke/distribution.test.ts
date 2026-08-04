@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 
-const version = "0.2.1";
+const version = "0.3.0";
 
 describe("public plugin distribution", () => {
   it("publishes root-source marketplaces for Codex and Claude Code", () => {
@@ -25,6 +25,8 @@ describe("public plugin distribution", () => {
   it("keeps every release manifest on the same version", () => {
     expect(JSON.parse(readFileSync(".codex-plugin/plugin.json", "utf8")).version).toBe(version);
     expect(JSON.parse(readFileSync(".claude-plugin/plugin.json", "utf8")).version).toBe(version);
+    expect(JSON.parse(readFileSync(".claude-plugin/marketplace.json", "utf8")).metadata.version).toBe(version);
+    expect(JSON.parse(readFileSync(".claude-plugin/marketplace.json", "utf8")).plugins[0].version).toBe(version);
     expect(parse(readFileSync("plugin.yaml", "utf8")).version).toBe(version);
     expect(JSON.parse(readFileSync("package.json", "utf8")).version).toBe(version);
   });
@@ -50,5 +52,8 @@ describe("public plugin distribution", () => {
     expect(readme).toMatch(/Node\.js.*pnpm/is);
     expect(readme).toMatch(/architecture-diagram.*optional/is);
     expect(readme).toMatch(/Hermes.*Claude Code.*Codex/is);
+    expect(readme).toContain("Installing Loopstack installs the framework");
+    expect(readme).toContain("mutable domain skills");
+    expect(readme).toContain("loop store");
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "loopstack",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Discover, design, plan, build, launch, and operate measurable AI loops.",
   "author": {
     "name": "ErwanFx"
@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "Loopstack",
     "shortDescription": "Build and operate measurable AI loops.",
-    "longDescription": "Loopstack uses six fluid, approval-aware workflows with internal specialist protocols and evidence-backed transitions.",
+    "longDescription": "Loopstack designs and builds bounded, approval-aware agent prompt cycles inside durable business processes.",
     "developerName": "ErwanFx",
     "category": "Productivity",
     "capabilities": [],

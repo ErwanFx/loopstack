@@ -31,7 +31,7 @@ describe("plugin manifests", () => {
   it("matches the repository and exposes only consolidated top-level skills", () => {
     const manifest = JSON.parse(readFileSync(".codex-plugin/plugin.json", "utf8"));
     expect(manifest.name).toBe("loopstack");
-    expect(manifest.version).toBe("0.2.1");
+    expect(manifest.version).toBe("0.3.0");
     expect(manifest.skills).toBe("./skills/");
     const discovered = readdirSync("skills", { withFileTypes: true })
       .filter((entry) => entry.isDirectory())
@@ -48,11 +48,23 @@ describe("plugin manifests", () => {
     expect(discovered).toEqual(publicSkills);
   });
 
-  it("keeps Hermes and Claude manifests on version 0.2.1", () => {
+  it("keeps Hermes and Claude manifests on version 0.3.0", () => {
     const hermes = readFileSync("plugin.yaml", "utf8");
     const claude = JSON.parse(readFileSync(".claude-plugin/plugin.json", "utf8"));
-    expect(hermes).toContain("version: 0.2.1");
-    expect(claude.version).toBe("0.2.1");
+    expect(hermes).toContain("version: 0.3.0");
+    expect(claude.version).toBe("0.3.0");
+  });
+
+  it("documents the complete orchestrated release without changing installation", () => {
+    const readme = readFileSync("README.md", "utf8");
+    expect(readme).toContain("Target → Observe state → Evaluate/Plan → Act → Observe result → Evaluate outcome → Learn → Decide");
+    expect(readme).toContain("compact six-box");
+    expect(readme).toContain("HermesRuntimeAdapter");
+    expect(readme).toContain("ClaudeCodeRuntimeAdapter");
+    expect(readme).toContain("CodexRuntimeAdapter");
+    expect(readme).toContain("photovoltaic administration");
+    expect(readme).toContain("prompt-cycle controller");
+    expect(readme).toContain("inert activation plan");
   });
 
   it("registers public skills and executable legacy aliases separately", () => {

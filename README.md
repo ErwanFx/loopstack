@@ -4,6 +4,28 @@ Loopstack discovers, designs, plans, builds, launches, and operates measurable A
 
 It ships the same seven workflows as a plugin for Hermes Agent, Claude Code, and Codex. Hermes is the primary runtime, while the design contract remains portable: operational history lives in the loop store and reusable improvements use the selected runtime's real skill or instruction mechanism.
 
+## What Loopstack builds
+
+Installing Loopstack installs the framework for interviewing, qualifying, designing, building, testing, launching, and operating loops. It does not install one universal autonomous agent. Each generated loop gets its own versioned process package, mutable domain skills, typed gates and triggers, loop store records separated by `loopId`, QA scenarios, and inert activation plan.
+
+An AI Loop is defined by its executable prompt-cycle controller: it repeatedly creates a bounded request from durable state, prompts a maker agent, observes the real result, optionally prompts a separate checker, evaluates, persists a checkpoint, and decides whether to continue, wait, stop, or escalate. A cron, webhook, dashboard, or state machine can trigger or surround this controller, but is not the loop by itself.
+
+The canonical technical cycle is:
+
+```text
+Target → Observe state → Evaluate/Plan → Act → Observe result → Evaluate outcome → Learn → Decide
+```
+
+The compact six-box view—Target → Observe → Evaluate → Act → Learn → Decide—remains useful for a simple infographic, but generated contracts and QA keep the pre-action and post-action observations/evaluations distinct.
+
+Loopstack separates three layers:
+
+- the durable business process: work items, states, waits, deadlines, external responses, and human approvals;
+- the control loop: target, observations, actions, outcomes, learning, and next decision;
+- the agent runtime: actual maker/checker invocations through `HermesRuntimeAdapter`, `ClaudeCodeRuntimeAdapter`, or `CodexRuntimeAdapter`.
+
+For example, the included photovoltaic administration reference architecture creates a dossier work item, lets the maker prepare missing evidence, lets the checker validate it, waits at a human mairie-submission gate, resumes in a new run after approval, then waits for the external response. The work item may live for weeks; every agent run remains bounded.
+
 ## Install
 
 ### Codex
@@ -66,7 +88,7 @@ Transitions between completed, authorized, non-blocked phases are automatic. The
 
 ## Why the surface is small
 
-Loopstack 0.2.1 keeps specialist procedures as progressively loaded references instead of exposing every internal concern as a user-facing skill. This follows the workflow structure popularized by [Superpowers](https://github.com/obra/superpowers): compact routing skills, exact terminal states, continuous execution, persistent evidence, and hard gates.
+Loopstack 0.3.0 keeps specialist procedures as progressively loaded references instead of exposing every internal concern as a user-facing skill. This follows the workflow structure popularized by [Superpowers](https://github.com/obra/superpowers): compact routing skills, exact terminal states, continuous execution, persistent evidence, and hard gates.
 
 ## Internal protocols
 
