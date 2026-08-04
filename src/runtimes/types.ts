@@ -1,6 +1,6 @@
 import type { LoopDefinition } from "../domain/types.js";
 
-export const runtimeNames = ["hermes", "claude-code"] as const;
+export const runtimeNames = ["hermes", "claude-code", "codex"] as const;
 export type RuntimeName = (typeof runtimeNames)[number];
 
 export type CommandResult = { exitCode: number; stdout: string; stderr: string };
@@ -32,6 +32,7 @@ export type RuntimeRenderInput = {
   approvalRequired?: boolean;
   alertPolicy?: string;
   workDirectory?: string;
+  deliveryTarget?: string;
 };
 
 export type RenderedTrigger = {
@@ -39,6 +40,22 @@ export type RenderedTrigger = {
   enabled: false;
   external?: boolean;
   schedule?: string;
+  id?: string;
+  role?: "primary" | "recovery" | "watchdog" | "resume";
+  source?: string;
+  event?: string;
+  idempotencyKey?: string;
+  debounceSeconds?: number;
+  replayWindowHours?: number;
+  payloadSchemaRef?: string;
+};
+
+export type PromptCycleEntryContract = {
+  entry: { executable: string; args: string[] };
+  requestContract: "AgentRunRequest";
+  resultContract: "AgentRunResult";
+  decisions: ["continue", "wait-human", "wait-external", "stop-success", "stop-failure", "escalate"];
+  makerChecker: true;
 };
 
 export type RenderedRuntimePackage = {
@@ -52,6 +69,10 @@ export type RenderedRuntimePackage = {
   alertPolicy: string;
   target: LoopDefinition["target"];
   feedback: LoopDefinition["feedback"];
+  guardrails: LoopDefinition["guardrails"];
+  serviceLevels: LoopDefinition["serviceLevels"];
+  promptCycle: PromptCycleEntryContract;
+  workDirectory: string;
   files: Record<string, string>;
   [key: string]: unknown;
 };

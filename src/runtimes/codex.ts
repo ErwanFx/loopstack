@@ -1,5 +1,5 @@
-import { access, readFile } from "node:fs/promises";
 import { constants } from "node:fs";
+import { access, readFile } from "node:fs/promises";
 import type {
   CommandRunner,
   PromptCycleEntryContract,
@@ -10,12 +10,10 @@ import type {
   RuntimeRenderInput,
   RuntimeValidation,
 } from "./types.js";
-import { createHermesActivationPlan, type ActivationPlan } from "./activation-plan.js";
 
-type HermesRenderedPackage = RenderedRuntimePackage & {
-  webhook: { route: string; secretEnv: string; skills: string[]; idempotencyHeader: string };
-  deliveryTarget: string;
-  activationPlan: ActivationPlan;
+type CodexRenderedPackage = RenderedRuntimePackage & {
+  toolPolicy: { allow: string[] };
+  externalTriggerRequirements: string[];
 };
 
 const unavailableRunner: CommandRunner = async () => ({ exitCode: 1, stdout: "", stderr: "runner unavailable" });
@@ -30,17 +28,17 @@ function promptCycle(loopId: string): PromptCycleEntryContract {
   };
 }
 
-export class HermesRuntimeAdapter implements RuntimeAdapter {
-  readonly name = "hermes" as const;
+export class CodexRuntimeAdapter implements RuntimeAdapter {
+  readonly name = "codex" as const;
 
   constructor(private readonly runner: CommandRunner = unavailableRunner) {}
 
-  async render(input: RuntimeRenderInput): Promise<HermesRenderedPackage> {
+  async render(input: RuntimeRenderInput): Promise<CodexRenderedPackage> {
     const { loop } = input;
     const skills = input.skills ?? [`${loop.id}-loop`];
-    const secretEnv = `LOOPSTACK_${loop.id.replaceAll("-", "_").toUpperCase()}_WEBHOOK_SECRET`;
+    const toolPolicy = { allow: [...(input.allowedTools ?? [])].sort() };
     const triggers = loop.triggers.map((trigger) => ({
-      type: trigger.type === "cron" ? "schedule" : trigger.type,
+      type: trigger.type,
       enabled: false as const,
       ...(trigger.id === undefined ? {} : { id: trigger.id }),
       role: trigger.role,
@@ -50,20 +48,16 @@ export class HermesRuntimeAdapter implements RuntimeAdapter {
       ...(trigger.debounceSeconds === undefined ? {} : { debounceSeconds: trigger.debounceSeconds }),
       ...(trigger.replayWindowHours === undefined ? {} : { replayWindowHours: trigger.replayWindowHours }),
       ...(trigger.payloadSchemaRef === undefined ? {} : { payloadSchemaRef: trigger.payloadSchemaRef }),
+      ...(["cron", "webhook", "event", "queue"].includes(trigger.type) ? { external: true } : {}),
       ...(trigger.type === "cron" && typeof trigger.configuration?.schedule === "string"
         ? { schedule: trigger.configuration.schedule }
         : {}),
     }));
-    const webhook = {
-      route: `/loopstack/${loop.id}`,
-      secretEnv,
-      skills,
-      idempotencyHeader: "x-loopstack-idempotency-key",
-    };
-    const deliveryTarget = input.deliveryTarget ?? "log";
+    const externalTriggerRequirements = triggers
+      .filter((trigger) => trigger.external)
+      .map((trigger) => `${trigger.type}: external receiver invokes loopstack prompt-cycle with loop id and idempotency key`);
     const cycle = promptCycle(loop.id);
     const workDirectory = input.workDirectory ?? `loops/${loop.id}`;
-    const activationPlan = createHermesActivationPlan(loop, { skills, deliveryTarget });
     const portable = {
       runtime: this.name,
       manifestVersion: 1 as const,
@@ -78,52 +72,53 @@ export class HermesRuntimeAdapter implements RuntimeAdapter {
       guardrails: loop.guardrails,
       serviceLevels: loop.serviceLevels,
       promptCycle: cycle,
-      webhook,
-      deliveryTarget,
+      toolPolicy,
+      externalTriggerRequirements,
       workDirectory,
     };
     return {
       ...portable,
-      activationPlan,
       files: {
         "runtime.json": `${JSON.stringify(portable, null, 2)}\n`,
-        "webhook-route.yaml": `route: ${webhook.route}\nsecret_env: ${secretEnv}\nenabled: false\n`,
-        "cron-job.yaml": `loop_id: ${loop.id}\nenabled: false\n`,
-        "activation-plan.json": `${JSON.stringify(activationPlan, null, 2)}\n`,
-        "skill-wrapper.md": `Run ${skills.join(", ")} for loop ${loop.id}. Preserve approval handoffs.\n`,
+        ".codex-plugin/plugin.json": `${JSON.stringify({
+          name: `loopstack-${loop.id}`,
+          version: String(loop.version),
+          description: `Codex runtime wrapper for ${loop.name}`,
+        }, null, 2)}\n`,
+        "tool-policy.json": `${JSON.stringify(toolPolicy, null, 2)}\n`,
+        "skill-wrapper.md": `Run ${skills.join(", ")} through the Loopstack prompt-cycle controller. Preserve human gates and durable checkpoints.\n`,
       },
     };
   }
 
   async preflight(input: RuntimePreflightInput): Promise<RuntimePreflight> {
-    const [cli, profile, gateway, skills] = await Promise.all([
-      this.runner("hermes", ["--help"]),
-      this.runner("hermes", ["profile", "current"]),
-      this.runner("hermes", ["gateway", "health"]),
-      this.runner("hermes", ["skills", "list"]),
+    const [cli, plugins] = await Promise.all([
+      this.runner("codex", ["--version"]),
+      this.runner("codex", ["plugin", "list"]),
     ]);
     const blockers: string[] = [];
-    if (cli.exitCode !== 0) blockers.push("hermes_cli");
-    if (profile.exitCode !== 0) blockers.push("authenticated_profile");
-    if (skills.exitCode !== 0) blockers.push("skills_directory");
-    if (input.loop.triggers.some((trigger) => trigger.type === "webhook") && gateway.exitCode !== 0) blockers.push("webhook_gateway");
-
+    if (cli.exitCode !== 0) blockers.push("codex_cli");
+    if (plugins.exitCode !== 0) blockers.push("skills_directory");
     return {
       runtime: this.name,
       cliPresent: cli.exitCode === 0,
-      authenticatedProfile: profile.exitCode === 0,
-      skillsDirectory: skills.exitCode === 0,
-      triggerSupport: { manual: true, cron: true, webhook: gateway.exitCode === 0, event: true, queue: true },
+      authenticatedProfile: cli.exitCode === 0,
+      skillsDirectory: plugins.exitCode === 0,
+      triggerSupport: { manual: true, cron: false, webhook: false, event: false, queue: false },
       approvalSupport: true,
-      deliveryTargetStatus: input.deliveryTarget && input.deliveryTarget !== "log" ? "untested" : "ready",
+      deliveryTargetStatus: input.deliveryTarget ? "untested" : "ready",
       blockers,
     };
   }
 
   async validate(packagePath: string): Promise<RuntimeValidation> {
     try {
-      await access(`${packagePath}/runtime.json`, constants.R_OK);
+      await Promise.all([
+        access(`${packagePath}/runtime.json`, constants.R_OK),
+        access(`${packagePath}/.codex-plugin/plugin.json`, constants.R_OK),
+      ]);
       JSON.parse(await readFile(`${packagePath}/runtime.json`, "utf8"));
+      JSON.parse(await readFile(`${packagePath}/.codex-plugin/plugin.json`, "utf8"));
       return { valid: true, errors: [] };
     } catch (error) {
       return { valid: false, errors: [error instanceof Error ? error.message : String(error)] };

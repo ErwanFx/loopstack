@@ -3,7 +3,7 @@ import { StorageProviderSchema } from "./schema.js";
 
 export const NativeCapabilitySchema = z.object({
   provider: StorageProviderSchema,
-  runtime: z.enum(["hermes", "claude-code"]),
+  runtime: z.enum(["hermes", "claude-code", "codex"]),
   capability: z.object({
     kind: z.enum(["mcp", "cli", "skill", "tool"]),
     name: z.string().min(1),

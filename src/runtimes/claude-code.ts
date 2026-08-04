@@ -2,6 +2,7 @@ import { access, readFile } from "node:fs/promises";
 import { constants } from "node:fs";
 import type {
   CommandRunner,
+  PromptCycleEntryContract,
   RenderedRuntimePackage,
   RuntimeAdapter,
   RuntimePreflight,
@@ -17,6 +18,16 @@ type ClaudeRenderedPackage = RenderedRuntimePackage & {
 
 const unavailableRunner: CommandRunner = async () => ({ exitCode: 1, stdout: "", stderr: "runner unavailable" });
 
+function promptCycle(loopId: string): PromptCycleEntryContract {
+  return {
+    entry: { executable: "loopstack", args: ["prompt-cycle", "run", "--loop", loopId] },
+    requestContract: "AgentRunRequest",
+    resultContract: "AgentRunResult",
+    decisions: ["continue", "wait-human", "wait-external", "stop-success", "stop-failure", "escalate"],
+    makerChecker: true,
+  };
+}
+
 export class ClaudeCodeRuntimeAdapter implements RuntimeAdapter {
   readonly name = "claude-code" as const;
 
@@ -29,6 +40,14 @@ export class ClaudeCodeRuntimeAdapter implements RuntimeAdapter {
     const triggers = loop.triggers.map((trigger) => ({
       type: trigger.type,
       enabled: false as const,
+      ...(trigger.id === undefined ? {} : { id: trigger.id }),
+      role: trigger.role,
+      ...(trigger.source === undefined ? {} : { source: trigger.source }),
+      ...(trigger.event === undefined ? {} : { event: trigger.event }),
+      ...(trigger.idempotencyKey === undefined ? {} : { idempotencyKey: trigger.idempotencyKey }),
+      ...(trigger.debounceSeconds === undefined ? {} : { debounceSeconds: trigger.debounceSeconds }),
+      ...(trigger.replayWindowHours === undefined ? {} : { replayWindowHours: trigger.replayWindowHours }),
+      ...(trigger.payloadSchemaRef === undefined ? {} : { payloadSchemaRef: trigger.payloadSchemaRef }),
       ...(["cron", "webhook", "event", "queue"].includes(trigger.type) ? { external: true } : {}),
       ...(trigger.type === "cron" && typeof trigger.configuration?.schedule === "string"
         ? { schedule: trigger.configuration.schedule }
@@ -37,6 +56,8 @@ export class ClaudeCodeRuntimeAdapter implements RuntimeAdapter {
     const externalTriggerRequirements = triggers
       .filter((trigger) => trigger.external)
       .map((trigger) => `${trigger.type}: invoke claude with loop id and idempotency key`);
+    const cycle = promptCycle(loop.id);
+    const workDirectory = input.workDirectory ?? `loops/${loop.id}`;
     const portable = {
       runtime: this.name,
       manifestVersion: 1 as const,
@@ -48,9 +69,12 @@ export class ClaudeCodeRuntimeAdapter implements RuntimeAdapter {
       alertPolicy: input.alertPolicy ?? "on-failure",
       target: loop.target,
       feedback: loop.feedback,
+      guardrails: loop.guardrails,
+      serviceLevels: loop.serviceLevels,
+      promptCycle: cycle,
       permissions,
       externalTriggerRequirements,
-      workDirectory: input.workDirectory ?? `loops/${loop.id}`,
+      workDirectory,
     };
     return {
       ...portable,
