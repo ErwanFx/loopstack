@@ -11,8 +11,9 @@ import { runLifecycleCommand } from "./commands/lifecycle.js";
 import { runInitBusinessRepoCommand } from "./commands/init-business-repo.js";
 import { runQaCommand } from "./commands/qa.js";
 import { runMonitorCommand } from "./commands/monitor.js";
+import { runGraphCommand } from "./commands/graph.js";
 
-const commands = ["validate", "transition", "readiness", "runtime", "storage", "qa", "monitor", "list", "show", "lifecycle", "init-business-repo"] as const;
+const commands = ["validate", "transition", "readiness", "runtime", "storage", "graph", "qa", "monitor", "list", "show", "lifecycle", "init-business-repo"] as const;
 
 function printHelp(): void {
   console.log(`Loopstack\n\nCommands:\n${commands.map((command) => `  ${command}`).join("\n")}`);
@@ -60,6 +61,8 @@ if (argument === "storage") {
   console.error(JSON.stringify({ code: "INVALID_ARGUMENT", message: "Use storage plan or storage verify" }));
   process.exit(2);
 }
+
+if (argument === "graph") process.exit(runGraphCommand(process.argv.slice(3)));
 
 if (argument === "list") process.exit(runListCommand(process.argv.slice(3)));
 if (argument === "show") process.exit(runShowCommand(process.argv.slice(3)));

@@ -14,6 +14,8 @@ Two deliverable layers:
 1. **Visual blueprint (mandatory, primary for human validation)** — one self-contained HTML file built with an available runtime-native diagram capability, or a self-contained HTML/SVG fallback.
 2. **Declarative package (mandatory, machine handoff)** — `loop.yaml` + supporting YAML under the loop workspace.
 
+When graph necessity was evidenced, also load [`prompt-graph-contract.md`](../prompt-graph-contract.md). The graph is optional; never make it a ceremony for a linear process.
+
 **Do not activate** crons, external writes, or deployable config in this skill.
 
 ## When to Use
@@ -84,6 +86,10 @@ Also define:
 - selected runtime (Hermes, Claude Code, or Codex) and storage *intent* only;
 - tools + least privilege.
 
+Choose exactly one execution mode: `deterministic-with-ai-improvement`, `single-agent-multi-session` (default for agentic work), or `multi-agent`. A deterministic operating path qualifies only when an AI feedback/improvement node exists. A single reusable agent profile may perform every graph task in a fresh session; multi-agent is not implied by multiple nodes.
+
+If a graph is justified, keep prompts separate from topology, apply the fake-edge test, use a fresh context for reviewers, make joins fail closed on missing inputs, bound every cycle, and protect immutable evidence anchors. Otherwise write `graph_required: false` and omit `graph.yaml`.
+
 Define the executable prompt-cycle controller, not merely a scheduler. Each iteration creates a versioned `AgentRunRequest`, invokes a maker, persists the result, optionally invokes a separate checker without consequential write tools, evaluates, checkpoints, and returns exactly one of `continue`, `wait-human`, `wait-external`, `stop-success`, `stop-failure`, or `escalate`. On `continue`, the controller constructs and sends a new prompt from persisted evidence. Waiting ends the current run; resume starts a new run from the durable work item.
 
 ### 3. Produce the HTML blueprint (mandatory)
@@ -117,6 +123,7 @@ Under `{workspace}/loops/{loop_id}/design/`:
 | `ai-loop-blueprint.html` | **Owner validation artifact** |
 | `loop.yaml` | v3 id, architecture shape, target, typed disabled triggers, feedback, guardrails, service levels, typed approval gates |
 | `process.yaml` | durable work-item state machine plus the complete control-cycle contract |
+| `graph.yaml` | optional executable prompt graph; emit only when graph necessity is evidenced |
 | `skills.yaml` | **Runtime** skills only: always_on, on_demand, phase matrix, minimum viable pack; plus mandatory `native_capabilities.learning` with runtime, adapter, and versioned update mechanism |
 | `tools.yaml` | tools, modes, connection status |
 | `storage.yaml` | provider intent only (no provision) |
@@ -219,6 +226,7 @@ handoff:
 - [ ] HTML sections mirror all eight moments with concrete content
 - [ ] HTML includes **Skills runtime** (always-on / on-demand / phase matrix); `skills.yaml` matches
 - [ ] Declarative YAML package written; `loop.yaml` schema-valid when CLI available
+- [ ] Execution mode selected; optional `graph.yaml` passes `loopstack graph validate`
 - [ ] Triggers default disabled / non-activating
 - [ ] Activation blockers listed as checklist only
 - [ ] Blueprint delivered to owner and **approval awaited**

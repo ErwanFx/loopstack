@@ -10,6 +10,7 @@ import type {
   RuntimeRenderInput,
   RuntimeValidation,
 } from "./types.js";
+import { renderGraphExecution } from "./graph-execution.js";
 
 type ClaudeRenderedPackage = RenderedRuntimePackage & {
   permissions: { allow: string[] };
@@ -58,6 +59,12 @@ export class ClaudeCodeRuntimeAdapter implements RuntimeAdapter {
       .map((trigger) => `${trigger.type}: invoke claude with loop id and idempotency key`);
     const cycle = promptCycle(loop.id);
     const workDirectory = input.workDirectory ?? `loops/${loop.id}`;
+    const graphPackage = input.graph === undefined ? undefined : renderGraphExecution(input.graph, this.name, loop.id, {
+      freshSessions: true,
+      sequentialFallback: true,
+      maxConcurrency: input.graph.budgets.maxConcurrency,
+      dynamicWorkflow: "optional",
+    });
     const portable = {
       runtime: this.name,
       manifestVersion: 1 as const,
@@ -75,6 +82,7 @@ export class ClaudeCodeRuntimeAdapter implements RuntimeAdapter {
       permissions,
       externalTriggerRequirements,
       workDirectory,
+      ...(graphPackage === undefined ? {} : { graphExecution: graphPackage.execution }),
     };
     return {
       ...portable,
@@ -83,6 +91,10 @@ export class ClaudeCodeRuntimeAdapter implements RuntimeAdapter {
         "plugin.json": `${JSON.stringify({ name: `loopstack-${loop.id}`, version: String(loop.version), skills: "./skills/" }, null, 2)}\n`,
         "permissions.json": `${JSON.stringify(permissions, null, 2)}\n`,
         "skill-wrapper.md": `Run ${skills.join(", ")}. Preserve handoffs and stop for every declared approval.\n`,
+        ...(graphPackage === undefined ? {} : {
+          "graph.json": graphPackage.graphFile,
+          "graph-binding.json": `${JSON.stringify(graphPackage.execution, null, 2)}\n`,
+        }),
       },
     };
   }

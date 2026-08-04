@@ -26,6 +26,17 @@ export function normalizeRuntimePackage(rendered: RenderedRuntimePackage): objec
     guardrails: rendered.guardrails,
     serviceLevels: rendered.serviceLevels,
     promptCycle: rendered.promptCycle,
+    ...(rendered.graphExecution === undefined ? {} : {
+      graphExecution: {
+        schemaVersion: rendered.graphExecution.schemaVersion,
+        graphId: rendered.graphExecution.graphId,
+        graphVersion: rendered.graphExecution.graphVersion,
+        topologyHash: rendered.graphExecution.topologyHash,
+        executionMode: rendered.graphExecution.executionMode,
+        entrypoint: rendered.graphExecution.entrypoint,
+        checkpointing: rendered.graphExecution.checkpointing,
+      },
+    }),
     workDirectory: rendered.workDirectory,
   };
 }

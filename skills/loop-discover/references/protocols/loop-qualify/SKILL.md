@@ -35,7 +35,7 @@ Good: “**Qualified as AI Loop.** Readiness blocked for **activation** (list). 
 
 Choose **exactly one** and give evidence:
 
-1. **AI Loop** — recurring decisions + bounded actions + measurable feedback + an executable controller that repeatedly prompts an agent from durable state
+1. **AI Loop** — recurring bounded work + measurable feedback + executable control from durable state. The operating path may prompt an agent repeatedly, or be deterministic when an AI evaluator/improver closes the learning cycle.
 2. **AI-assisted workflow** — humans drive; AI helps steps without a closed optimising cycle
 3. **deterministic automation** — rules fully determine the output (prefer this when true)
 4. **on-demand agent task** — each run starts from a human request; no durable cadence/state needed
@@ -61,9 +61,19 @@ Choose **exactly one** and give evidence:
 | Bounded action space | allowed / forbidden actions named |
 | Measurable feedback | metric + source + delay |
 | Iteration | results change future runs |
-| Agent prompt cycle | a bounded controller issues a new maker/checker prompt after persisted evaluation |
+| AI control | a bounded maker/checker prompt cycle, or an AI feedback/improvement node governing a deterministic operating path |
 
 A cron, webhook, state machine, or dashboard alone is not an AI Loop. The initiating trigger may be a cron, webhook, event, queue, or human request; what qualifies the system is the repeated agent prompt cycle and measurable feedback, not the trigger type.
+
+### Execution mode (required)
+
+Choose the simplest mode that fits:
+
+1. `deterministic-with-ai-improvement` — business execution is code/rules; a model-backed AI evaluator creates governed improvement proposals, with no autonomous agent profile required.
+2. `single-agent-multi-session` — default when judgment is needed; one reusable agent profile performs different bounded nodes in fresh sessions.
+3. `multi-agent` — only for real isolation, different permissions/models, independent ownership, or safe parallel work. Different tasks alone do not justify different agents.
+
+Then record **graph necessity** separately. Use no prompt graph for a linear, easily observable sequence. Recommend an optional graph only for explicit dependencies, conditional routing, joins, bounded cycles, parallel fan-out, human waits, or resumable recovery. The product remains an AI Loop either way.
 
 For an AI Loop, also select exactly one architecture shape:
 

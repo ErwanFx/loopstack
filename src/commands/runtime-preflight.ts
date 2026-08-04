@@ -4,6 +4,7 @@ import { parse } from "yaml";
 import { LoopDefinitionSchema } from "../domain/schemas.js";
 import { createRuntimeAdapter } from "../runtimes/registry.js";
 import type { CommandRunner } from "../runtimes/types.js";
+import { PromptGraphDefinitionSchema } from "../graph/schemas.js";
 
 const commandRunner: CommandRunner = (command, args) => new Promise((resolve) => {
   const child = spawn(command, [...args], { stdio: ["ignore", "pipe", "pipe"] });
@@ -23,6 +24,7 @@ function option(args: readonly string[], name: string): string | undefined {
 export async function runRuntimePreflightCommand(args: readonly string[]): Promise<number> {
   const runtime = option(args, "--runtime");
   const loopPath = option(args, "--loop");
+  const graphPath = option(args, "--graph");
   if (!runtime || !loopPath) {
     console.error(JSON.stringify({ code: "INVALID_ARGUMENT", message: "Provide --runtime and --loop" }));
     return 2;
@@ -30,10 +32,17 @@ export async function runRuntimePreflightCommand(args: readonly string[]): Promi
   try {
     const document = parse(readFileSync(loopPath, "utf8")) as { loop?: unknown; tools?: string[] };
     const loop = LoopDefinitionSchema.parse(document.loop);
+    const graph = graphPath === undefined
+      ? undefined
+      : PromptGraphDefinitionSchema.parse(parse(readFileSync(graphPath, "utf8")));
+    if (graph !== undefined && graph.loopId !== loop.id) {
+      throw new Error(`Graph loopId ${graph.loopId} does not match loop ${loop.id}`);
+    }
     const result = await createRuntimeAdapter(runtime, commandRunner).preflight({
       loop,
       requiredSkills: [`${loop.id}-loop`],
       requiredTools: document.tools ?? [],
+      ...(graph === undefined ? {} : { graph }),
     });
     console.log(JSON.stringify(result, null, 2));
     return result.blockers.length === 0 ? 0 : 2;

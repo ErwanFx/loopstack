@@ -31,7 +31,7 @@ describe("plugin manifests", () => {
   it("matches the repository and exposes only consolidated top-level skills", () => {
     const manifest = JSON.parse(readFileSync(".codex-plugin/plugin.json", "utf8"));
     expect(manifest.name).toBe("loopstack");
-    expect(manifest.version).toBe("0.3.0");
+    expect(manifest.version).toBe("0.4.0");
     expect(manifest.skills).toBe("./skills/");
     const discovered = readdirSync("skills", { withFileTypes: true })
       .filter((entry) => entry.isDirectory())
@@ -48,11 +48,11 @@ describe("plugin manifests", () => {
     expect(discovered).toEqual(publicSkills);
   });
 
-  it("keeps Hermes and Claude manifests on version 0.3.0", () => {
+  it("keeps Hermes and Claude manifests on version 0.4.0", () => {
     const hermes = readFileSync("plugin.yaml", "utf8");
     const claude = JSON.parse(readFileSync(".claude-plugin/plugin.json", "utf8"));
-    expect(hermes).toContain("version: 0.3.0");
-    expect(claude.version).toBe("0.3.0");
+    expect(hermes).toContain("version: 0.4.0");
+    expect(claude.version).toBe("0.4.0");
   });
 
   it("documents the complete orchestrated release without changing installation", () => {

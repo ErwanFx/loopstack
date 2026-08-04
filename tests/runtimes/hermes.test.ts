@@ -3,6 +3,7 @@ import { parse } from "yaml";
 import { describe, expect, it } from "vitest";
 import { LoopDefinitionSchema } from "../../src/domain/schemas.js";
 import { HermesRuntimeAdapter } from "../../src/runtimes/hermes.js";
+import { portableGraph } from "../fixtures/prompt-graph.js";
 
 const loop = LoopDefinitionSchema.parse({
   id: "seo-growth",
@@ -52,5 +53,39 @@ describe("Hermes runtime adapter", () => {
     });
     expect(result.authenticatedProfile).toBe(false);
     expect(result.blockers).toContain("authenticated_profile");
+  });
+
+  it("reuses one Hermes profile in fresh sequential sessions", async () => {
+    const rendered = await new HermesRuntimeAdapter().render({ loop, graph: portableGraph });
+
+    expect(rendered.graphExecution).toMatchObject({
+      executionMode: "single-agent-multi-session",
+      capabilities: { freshSessions: true, maxConcurrency: 1, sequentialFallback: true },
+      agentBindings: [{ profile: "ecoi-seo", sessionPolicy: "fresh", maxConcurrency: 1 }],
+    });
+    expect(JSON.parse(rendered.files["graph.json"]).nodes.map((node: { agentId?: string }) => node.agentId))
+      .toEqual(["seo-operator", "seo-operator", "seo-operator"]);
+  });
+
+  it("blocks missing graph profiles and skills using read-only list commands", async () => {
+    const commands: string[][] = [];
+    const runner = async (command: string, args: readonly string[]) => {
+      commands.push([command, ...args]);
+      if (args.join(" ") === "profile list") return { exitCode: 0, stdout: "default\n", stderr: "" };
+      if (args.join(" ") === "skills list") return { exitCode: 0, stdout: "seo-research\n", stderr: "" };
+      return { exitCode: 0, stdout: "ok", stderr: "" };
+    };
+    const result = await new HermesRuntimeAdapter(runner).preflight({
+      loop,
+      graph: portableGraph,
+      requiredSkills: [],
+      requiredTools: [],
+    });
+
+    expect(result.blockers).toEqual(expect.arrayContaining([
+      "profile:ecoi-seo",
+      "skill:seo-writing",
+    ]));
+    expect(commands.some((command) => command.includes("create"))).toBe(false);
   });
 });

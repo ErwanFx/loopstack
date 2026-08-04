@@ -4,6 +4,7 @@ import { parse } from "yaml";
 import { LoopDefinitionSchema } from "../domain/schemas.js";
 import { createRuntimeAdapter } from "../runtimes/registry.js";
 import { validateLoopFile } from "./validate.js";
+import { PromptGraphDefinitionSchema } from "../graph/schemas.js";
 
 function option(args: readonly string[], name: string): string | undefined {
   const index = args.indexOf(name);
@@ -14,6 +15,7 @@ export async function runRuntimeRenderCommand(args: readonly string[]): Promise<
   const runtime = option(args, "--runtime");
   const loopPath = option(args, "--loop");
   const outputPath = option(args, "--out");
+  const graphPath = option(args, "--graph");
   if (!runtime || !loopPath || !outputPath) {
     console.error(JSON.stringify({ code: "INVALID_ARGUMENT", message: "Provide --runtime, --loop, and --out" }));
     return 2;
@@ -26,7 +28,17 @@ export async function runRuntimeRenderCommand(args: readonly string[]): Promise<
     }
     const document = parse(readFileSync(loopPath, "utf8")) as { loop?: unknown; tools?: string[] };
     const loop = LoopDefinitionSchema.parse(document.loop);
-    const rendered = await createRuntimeAdapter(runtime).render({ loop, allowedTools: document.tools ?? [] });
+    const graph = graphPath === undefined
+      ? undefined
+      : PromptGraphDefinitionSchema.parse(parse(readFileSync(graphPath, "utf8")));
+    if (graph !== undefined && graph.loopId !== loop.id) {
+      throw new Error(`Graph loopId ${graph.loopId} does not match loop ${loop.id}`);
+    }
+    const rendered = await createRuntimeAdapter(runtime).render({
+      loop,
+      allowedTools: document.tools ?? [],
+      ...(graph === undefined ? {} : { graph }),
+    });
     await mkdir(outputPath, { recursive: true });
     await Promise.all(Object.entries(rendered.files).map(async ([name, content]) => {
       const path = `${outputPath}/${name}`;

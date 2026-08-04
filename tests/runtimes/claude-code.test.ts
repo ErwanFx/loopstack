@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { LoopDefinitionSchema } from "../../src/domain/schemas.js";
 import { ClaudeCodeRuntimeAdapter } from "../../src/runtimes/claude-code.js";
+import { portableGraph } from "../fixtures/prompt-graph.js";
 
 const loop = LoopDefinitionSchema.parse({
   id: "seo-growth",
@@ -12,6 +13,17 @@ const loop = LoopDefinitionSchema.parse({
   current: { value: 12, observedAt: "2026-08-01T00:00:00.000Z" },
   triggers: [{ type: "manual" }, { type: "webhook" }, { type: "cron", configuration: { schedule: "0 8 * * 1" } }],
   feedback: [{ metric: "qualified_leads", delayDays: 30 }],
+});
+
+describe("Claude Code graph execution", () => {
+  it("renders the portable graph with optional dynamic workflows and a sequential fallback", async () => {
+    const rendered = await new ClaudeCodeRuntimeAdapter().render({ loop, graph: portableGraph });
+    expect(rendered.graphExecution).toMatchObject({
+      executionMode: "single-agent-multi-session",
+      capabilities: { dynamicWorkflow: "optional", freshSessions: true, sequentialFallback: true },
+    });
+    expect(rendered.files["graph.json"]).toBeDefined();
+  });
 });
 
 describe("Claude Code runtime adapter", () => {

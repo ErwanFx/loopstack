@@ -10,6 +10,7 @@ import type {
   RuntimeRenderInput,
   RuntimeValidation,
 } from "./types.js";
+import { renderGraphExecution } from "./graph-execution.js";
 
 type CodexRenderedPackage = RenderedRuntimePackage & {
   toolPolicy: { allow: string[] };
@@ -58,6 +59,11 @@ export class CodexRuntimeAdapter implements RuntimeAdapter {
       .map((trigger) => `${trigger.type}: external receiver invokes loopstack prompt-cycle with loop id and idempotency key`);
     const cycle = promptCycle(loop.id);
     const workDirectory = input.workDirectory ?? `loops/${loop.id}`;
+    const graphPackage = input.graph === undefined ? undefined : renderGraphExecution(input.graph, this.name, loop.id, {
+      freshSessions: true,
+      sequentialFallback: true,
+      maxConcurrency: input.graph.budgets.maxConcurrency,
+    });
     const portable = {
       runtime: this.name,
       manifestVersion: 1 as const,
@@ -75,6 +81,7 @@ export class CodexRuntimeAdapter implements RuntimeAdapter {
       toolPolicy,
       externalTriggerRequirements,
       workDirectory,
+      ...(graphPackage === undefined ? {} : { graphExecution: graphPackage.execution }),
     };
     return {
       ...portable,
@@ -87,6 +94,10 @@ export class CodexRuntimeAdapter implements RuntimeAdapter {
         }, null, 2)}\n`,
         "tool-policy.json": `${JSON.stringify(toolPolicy, null, 2)}\n`,
         "skill-wrapper.md": `Run ${skills.join(", ")} through the Loopstack prompt-cycle controller. Preserve human gates and durable checkpoints.\n`,
+        ...(graphPackage === undefined ? {} : {
+          "graph.json": graphPackage.graphFile,
+          "graph-binding.json": `${JSON.stringify(graphPackage.execution, null, 2)}\n`,
+        }),
       },
     };
   }

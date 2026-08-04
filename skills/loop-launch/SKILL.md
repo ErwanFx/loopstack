@@ -23,6 +23,7 @@ Require:
 - verified connections and actual alert placement;
 - tested attribution required by the north-star metric;
 - owner, kill switch, rollback, and budget;
+- when a graph exists, a compiler-valid artifact whose topology hash matches the approved design, build, and QA evidence;
 - explicit activation approval for the requested stage.
 
 Do not accept scheduler creation, command success, or a numeric score as proof of external readiness.

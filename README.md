@@ -8,7 +8,7 @@ It ships the same seven workflows as a plugin for Hermes Agent, Claude Code, and
 
 Installing Loopstack installs the framework for interviewing, qualifying, designing, building, testing, launching, and operating loops. It does not install one universal autonomous agent. Each generated loop gets its own versioned process package, mutable domain skills, typed gates and triggers, loop store records separated by `loopId`, QA scenarios, and inert activation plan.
 
-An AI Loop is defined by its executable prompt-cycle controller: it repeatedly creates a bounded request from durable state, prompts a maker agent, observes the real result, optionally prompts a separate checker, evaluates, persists a checkpoint, and decides whether to continue, wait, stop, or escalate. A cron, webhook, dashboard, or state machine can trigger or surround this controller, but is not the loop by itself.
+An AI Loop is a recurring, bounded operating system that observes durable state, acts, measures real feedback, and uses AI to improve later decisions. AI may execute business steps, or the business path may stay deterministic while an AI evaluator proposes governed improvements. A cron, webhook, event, queue, or human request may start a run; the trigger is not the loop.
 
 The canonical technical cycle is:
 
@@ -18,11 +18,30 @@ Target → Observe state → Evaluate/Plan → Act → Observe result → Evalua
 
 The compact six-box view—Target → Observe → Evaluate → Act → Learn → Decide—remains useful for a simple infographic, but generated contracts and QA keep the pre-action and post-action observations/evaluations distinct.
 
-Loopstack separates three layers:
+Loopstack separates four concerns:
 
 - the durable business process: work items, states, waits, deadlines, external responses, and human approvals;
 - the control loop: target, observations, actions, outcomes, learning, and next decision;
-- the agent runtime: actual maker/checker invocations through `HermesRuntimeAdapter`, `ClaudeCodeRuntimeAdapter`, or `CodexRuntimeAdapter`.
+- the optional prompt graph: explicit nodes and edges for branches, joins, bounded correction cycles, parallel work, approvals, and recovery;
+- the runtime harness: sessions, tools, checkpoints, budgets, and actual invocations through `HermesRuntimeAdapter`, `ClaudeCodeRuntimeAdapter`, or `CodexRuntimeAdapter`.
+
+## AI Loop or graph engineering?
+
+Loopstack remains an AI Loop framework: graph engineering is optional. A short linear process stays a simple loop. Loopstack emits `graph.yaml` only when the dependencies really require branching, fan-out/fan-in, bounded cycles, human waits, resource ordering, or resumable recovery. Prompts remain separate from topology, and `loopstack graph validate` rejects unsafe contracts before launch.
+
+Simple agentic loops keep the existing bounded prompt-cycle controller: durable request → maker → optional fresh checker → evaluation → checkpoint → continue, wait, stop, or escalate.
+
+The execution choice is deliberately small:
+
+- `deterministic-with-ai-improvement`: code and rules run the business process; a model-backed AI evaluator proposes versioned improvements without requiring an autonomous agent profile;
+- `single-agent-multi-session`: the default for agentic work—one reusable profile performs different bounded tasks in fresh sessions;
+- `multi-agent`: reserved for real isolation, different permissions/models/owners, or useful parallel work.
+
+Multiple graph nodes do not imply multiple agents. In Hermès, one profile can research keywords, write, and review in separate fresh sessions. Loopstack defaults that profile to sequential execution because profile switching is process-global. Claude Code may use optional dynamic workflows; Claude Code and Codex always keep the durable sequential runner as a fallback.
+
+The graph runner checkpoints before and after each node, pins a topology hash, bounds cost/time/steps/retries/cycles, fails closed on missing fan-in, and escalates interrupted consequential actions. Auto-improvement produces a proposal only: active graphs, prompts, plugin skills, gates, permissions, anchors, and evaluation rules cannot silently rewrite themselves.
+
+See the portable SEO example at [`examples/seo/graph.yaml`](examples/seo/graph.yaml): one `seo-operator` profile researches with OpenSEO, writes, reviews in fresh context, waits for human publication approval, publishes idempotently, measures delayed feedback, and proposes an improvement after enough evidence windows.
 
 For example, the included photovoltaic administration reference architecture creates a dossier work item, lets the maker prepare missing evidence, lets the checker validate it, waits at a human mairie-submission gate, resumes in a new run after approval, then waits for the external response. The work item may live for weeks; every agent run remains bounded.
 
@@ -88,7 +107,7 @@ Transitions between completed, authorized, non-blocked phases are automatic. The
 
 ## Why the surface is small
 
-Loopstack 0.3.0 keeps specialist procedures as progressively loaded references instead of exposing every internal concern as a user-facing skill. This follows the workflow structure popularized by [Superpowers](https://github.com/obra/superpowers): compact routing skills, exact terminal states, continuous execution, persistent evidence, and hard gates.
+Loopstack 0.4.0 keeps specialist procedures as progressively loaded references instead of exposing every internal concern as a user-facing skill. This follows the workflow structure popularized by [Superpowers](https://github.com/obra/superpowers): compact routing skills, exact terminal states, continuous execution, persistent evidence, and hard gates.
 
 ## Internal protocols
 
@@ -133,4 +152,4 @@ npm install
 npm run check
 ```
 
-The release quality gate validates TypeScript, synchronized schemas, the exact seven-skill public surface, Codex-compatible frontmatter, public registration, v1 routes, executable alias resolution, strict v2 dual-write records, scope-bound gate evidence, route-only auto-transitions, storage operations, QA, and runtime behavior. GitHub Actions also rebuilds the CLI and compiles the Hermes adapter on every push and pull request.
+The release quality gate validates TypeScript, synchronized loop/handoff/graph schemas, the exact seven-skill public surface, Codex-compatible frontmatter, public registration, v1 routes, executable alias resolution, strict v2 dual-write records, scope-bound gate evidence, route-only auto-transitions, storage operations, graph QA, and equivalent Hermès/Claude Code/Codex runtime packages. GitHub Actions also rebuilds the CLI and compiles the Hermes adapter on every push and pull request.

@@ -1,0 +1,1180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "agents": {
+      "default": [],
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "maxConcurrency": {
+            "default": 1,
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "profile": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "requiredSkills": {
+            "default": [],
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "requiredTools": {
+            "default": [],
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "runtime": {
+            "enum": [
+              "portable",
+              "hermes",
+              "claude-code",
+              "codex"
+            ],
+            "type": "string"
+          },
+          "sessionPolicy": {
+            "default": "fresh",
+            "enum": [
+              "fresh",
+              "resume"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "runtime",
+          "sessionPolicy",
+          "maxConcurrency",
+          "requiredSkills",
+          "requiredTools"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "anchors": {
+      "default": [],
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "immutable": {
+            "const": true,
+            "type": "boolean"
+          },
+          "nodeId": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "nodeId",
+          "evidence",
+          "immutable"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "budgets": {
+      "additionalProperties": false,
+      "properties": {
+        "maxConcurrency": {
+          "default": 1,
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        },
+        "maxCost": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "maxDurationSeconds": {
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        },
+        "maxRetriesPerNode": {
+          "default": 0,
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "maxSteps": {
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "maxSteps",
+        "maxCost",
+        "maxDurationSeconds",
+        "maxConcurrency",
+        "maxRetriesPerNode"
+      ],
+      "type": "object"
+    },
+    "edges": {
+      "default": [],
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact": {
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+            "type": "string"
+          },
+          "dependencyReason": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "from": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "maxTraversals": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "to": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "data",
+              "control"
+            ],
+            "type": "string"
+          },
+          "when": {
+            "additionalProperties": false,
+            "properties": {
+              "operator": {
+                "enum": [
+                  "eq",
+                  "neq",
+                  "gt",
+                  "gte",
+                  "lt",
+                  "lte",
+                  "in",
+                  "exists",
+                  "not-exists"
+                ],
+                "type": "string"
+              },
+              "path": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "value": {}
+            },
+            "required": [
+              "path",
+              "operator"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "type"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "entrypoint": {
+      "maxLength": 64,
+      "minLength": 1,
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "type": "string"
+    },
+    "executionMode": {
+      "enum": [
+        "deterministic-with-ai-improvement",
+        "single-agent-multi-session",
+        "multi-agent"
+      ],
+      "type": "string"
+    },
+    "id": {
+      "maxLength": 64,
+      "minLength": 1,
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "type": "string"
+    },
+    "improvement": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "const": true,
+          "type": "boolean"
+        },
+        "evaluationSuiteRef": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "feedbackArtifacts": {
+          "items": {
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "minFeedbackWindows": {
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        },
+        "nodeId": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "type": "string"
+        },
+        "proposalPolicy": {
+          "enum": [
+            "human-approved",
+            "risk-gated"
+          ],
+          "type": "string"
+        },
+        "protectedNodeIds": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "enabled",
+        "nodeId",
+        "feedbackArtifacts",
+        "evaluationSuiteRef",
+        "protectedNodeIds",
+        "proposalPolicy",
+        "minFeedbackWindows"
+      ],
+      "type": "object"
+    },
+    "loopId": {
+      "maxLength": 64,
+      "minLength": 1,
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "type": "string"
+    },
+    "nodes": {
+      "items": {
+        "anyOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "agentId": {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+                "type": "string"
+              },
+              "id": {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+                "type": "string"
+              },
+              "idempotencyKeyRef": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "inputs": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "kind": {
+                "const": "agent",
+                "type": "string"
+              },
+              "outputs": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "promptRef": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "purpose": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "resourceLocks": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._:-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "role": {
+                "enum": [
+                  "operator",
+                  "reviewer",
+                  "improver"
+                ],
+                "type": "string"
+              },
+              "session": {
+                "default": "fresh",
+                "enum": [
+                  "fresh",
+                  "resume"
+                ],
+                "type": "string"
+              },
+              "sideEffect": {
+                "default": "none",
+                "enum": [
+                  "none",
+                  "reversible",
+                  "consequential"
+                ],
+                "type": "string"
+              },
+              "skills": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "timeoutSeconds": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "tools": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "id",
+              "purpose",
+              "inputs",
+              "outputs",
+              "resourceLocks",
+              "sideEffect",
+              "kind",
+              "agentId",
+              "role",
+              "promptRef",
+              "session",
+              "skills",
+              "tools"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "agentId": {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+                "type": "string"
+              },
+              "id": {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+                "type": "string"
+              },
+              "idempotencyKeyRef": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "inputs": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "kind": {
+                "const": "skill",
+                "type": "string"
+              },
+              "outputs": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "promptRef": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "purpose": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "resourceLocks": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._:-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "session": {
+                "default": "fresh",
+                "enum": [
+                  "fresh",
+                  "resume"
+                ],
+                "type": "string"
+              },
+              "sideEffect": {
+                "default": "none",
+                "enum": [
+                  "none",
+                  "reversible",
+                  "consequential"
+                ],
+                "type": "string"
+              },
+              "skills": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "timeoutSeconds": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "id",
+              "purpose",
+              "inputs",
+              "outputs",
+              "resourceLocks",
+              "sideEffect",
+              "kind",
+              "agentId",
+              "skills",
+              "session"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+                "type": "string"
+              },
+              "idempotencyKeyRef": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "inputs": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "kind": {
+                "const": "tool",
+                "type": "string"
+              },
+              "outputs": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "purpose": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "resourceLocks": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._:-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "sideEffect": {
+                "default": "none",
+                "enum": [
+                  "none",
+                  "reversible",
+                  "consequential"
+                ],
+                "type": "string"
+              },
+              "timeoutSeconds": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "toolRef": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "purpose",
+              "inputs",
+              "outputs",
+              "resourceLocks",
+              "sideEffect",
+              "kind",
+              "toolRef"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+                "type": "string"
+              },
+              "idempotencyKeyRef": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "inputs": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "kind": {
+                "const": "transform",
+                "type": "string"
+              },
+              "outputs": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "purpose": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "resourceLocks": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._:-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "sideEffect": {
+                "default": "none",
+                "enum": [
+                  "none",
+                  "reversible",
+                  "consequential"
+                ],
+                "type": "string"
+              },
+              "timeoutSeconds": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "transformRef": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "purpose",
+              "inputs",
+              "outputs",
+              "resourceLocks",
+              "sideEffect",
+              "kind",
+              "transformRef"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "decisionArtifact": {
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+                "type": "string"
+              },
+              "id": {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+                "type": "string"
+              },
+              "idempotencyKeyRef": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "inputs": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "kind": {
+                "const": "router",
+                "type": "string"
+              },
+              "outputs": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "purpose": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "resourceLocks": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._:-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "sideEffect": {
+                "default": "none",
+                "enum": [
+                  "none",
+                  "reversible",
+                  "consequential"
+                ],
+                "type": "string"
+              },
+              "timeoutSeconds": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "id",
+              "purpose",
+              "inputs",
+              "outputs",
+              "resourceLocks",
+              "sideEffect",
+              "kind",
+              "decisionArtifact"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "agentId": {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+                "type": "string"
+              },
+              "criteria": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "evaluatorRef": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "id": {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+                "type": "string"
+              },
+              "idempotencyKeyRef": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "inputs": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "kind": {
+                "const": "evaluator",
+                "type": "string"
+              },
+              "mode": {
+                "enum": [
+                  "ai",
+                  "deterministic"
+                ],
+                "type": "string"
+              },
+              "modelRef": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "outputs": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "promptRef": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "purpose": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "resourceLocks": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._:-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "session": {
+                "default": "fresh",
+                "enum": [
+                  "fresh",
+                  "resume"
+                ],
+                "type": "string"
+              },
+              "sideEffect": {
+                "default": "none",
+                "enum": [
+                  "none",
+                  "reversible",
+                  "consequential"
+                ],
+                "type": "string"
+              },
+              "timeoutSeconds": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "id",
+              "purpose",
+              "inputs",
+              "outputs",
+              "resourceLocks",
+              "sideEffect",
+              "kind",
+              "mode",
+              "session",
+              "criteria"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "gateId": {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+                "type": "string"
+              },
+              "id": {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+                "type": "string"
+              },
+              "idempotencyKeyRef": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "inputs": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "kind": {
+                "const": "human-gate",
+                "type": "string"
+              },
+              "outputs": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "purpose": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "resourceLocks": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._:-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "sideEffect": {
+                "default": "none",
+                "enum": [
+                  "none",
+                  "reversible",
+                  "consequential"
+                ],
+                "type": "string"
+              },
+              "timeoutSeconds": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "id",
+              "purpose",
+              "inputs",
+              "outputs",
+              "resourceLocks",
+              "sideEffect",
+              "kind",
+              "gateId"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "activation": {
+                "enum": [
+                  "all",
+                  "any"
+                ],
+                "type": "string"
+              },
+              "id": {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+                "type": "string"
+              },
+              "idempotencyKeyRef": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "inputs": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "kind": {
+                "const": "join",
+                "type": "string"
+              },
+              "minimumInputs": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "outputs": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "purpose": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "resourceLocks": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._:-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "sideEffect": {
+                "default": "none",
+                "enum": [
+                  "none",
+                  "reversible",
+                  "consequential"
+                ],
+                "type": "string"
+              },
+              "timeoutSeconds": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "id",
+              "purpose",
+              "inputs",
+              "outputs",
+              "resourceLocks",
+              "sideEffect",
+              "kind",
+              "activation"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "graphRef": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "id": {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+                "type": "string"
+              },
+              "idempotencyKeyRef": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "inputs": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "kind": {
+                "const": "subgraph",
+                "type": "string"
+              },
+              "outputs": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "purpose": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "resourceLocks": {
+                "default": [],
+                "items": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9]+(?:[._:-][a-z0-9]+)*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "sideEffect": {
+                "default": "none",
+                "enum": [
+                  "none",
+                  "reversible",
+                  "consequential"
+                ],
+                "type": "string"
+              },
+              "timeoutSeconds": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "id",
+              "purpose",
+              "inputs",
+              "outputs",
+              "resourceLocks",
+              "sideEffect",
+              "kind",
+              "graphRef"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "schemaVersion": {
+      "const": 1,
+      "type": "number"
+    },
+    "version": {
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "id",
+    "loopId",
+    "version",
+    "executionMode",
+    "entrypoint",
+    "agents",
+    "budgets",
+    "nodes",
+    "edges",
+    "anchors",
+    "improvement"
+  ],
+  "type": "object"
+}

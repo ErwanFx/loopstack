@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 
-const version = "0.3.0";
+const version = "0.4.0";
 
 describe("public plugin distribution", () => {
   it("publishes root-source marketplaces for Codex and Claude Code", () => {
@@ -55,5 +55,8 @@ describe("public plugin distribution", () => {
     expect(readme).toContain("Installing Loopstack installs the framework");
     expect(readme).toContain("mutable domain skills");
     expect(readme).toContain("loop store");
+    expect(readme).toContain("graph engineering is optional");
+    expect(readme).toContain("single-agent-multi-session");
+    expect(readme).toContain("examples/seo/graph.yaml");
   });
 });

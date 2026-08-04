@@ -23,13 +23,26 @@ export function diffLoopVersions(before: unknown, after: unknown): SemanticDiff 
 
 export function classifyChange(diff: SemanticDiff) {
   const paths = diff.changes.map((change) => change.path);
-  const highRisk = paths.some((path) => path.startsWith("approvals") || path.startsWith("permissions"));
+  const graphQaRequired = paths.some((path) => path.startsWith("graph."));
+  const graphSafetyChange = diff.changes.some((change) =>
+    change.path.startsWith("graph.anchors")
+    || change.path.startsWith("graph.improvement.protectedNodeIds")
+    || change.path.endsWith(".sideEffect")
+    || change.path.endsWith(".kind") && (change.before === "human-gate" || change.after === "human-gate"));
+  const highRisk = graphSafetyChange
+    || paths.some((path) => path.startsWith("approvals") || path.startsWith("permissions"));
   const migrationRequired = paths.some((path) => path.startsWith("storage"));
-  const structural = highRisk || migrationRequired || paths.some((path) => path.startsWith("alerts") || path.startsWith("process"));
+  const structural = highRisk || migrationRequired || graphQaRequired
+    || paths.some((path) => path.startsWith("alerts") || path.startsWith("process"));
+  const requiredTests = [...new Set([
+    ...paths.map((path) => path.split(".")[0]),
+    ...(graphQaRequired ? ["graph-qa"] : []),
+  ])].sort();
   return {
     risk: highRisk || migrationRequired ? "high-risk-structural" as const : structural ? "structural" as const : "behavioral" as const,
     approvalRequired: diff.changes.length > 0,
     migrationRequired,
-    requiredTests: [...new Set(paths.map((path) => path.split(".")[0]))].sort(),
+    graphQaRequired,
+    requiredTests,
   };
 }

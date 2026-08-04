@@ -43,4 +43,29 @@ describe("semantic loop versioning", () => {
   it("rejects wrapper-only edits without a canonical diff", () => {
     expect(() => validateGeneratedWrapperChange(diffLoopVersions(before, before), true)).toThrow(/canonical YAML/);
   });
+
+  it("requires graph QA and high-risk review for anchors, gates, and topology", () => {
+    const graphBefore = {
+      ...before,
+      graph: {
+        nodes: [{ id: "review", kind: "evaluator" }, { id: "approval", kind: "human-gate" }],
+        edges: [{ from: "review", to: "approval" }],
+        anchors: [{ id: "source-data", immutable: true }],
+      },
+    };
+    const graphAfter = {
+      ...graphBefore,
+      graph: {
+        nodes: [{ id: "review", kind: "evaluator" }],
+        edges: [],
+        anchors: [],
+      },
+    };
+
+    expect(classifyChange(diffLoopVersions(graphBefore, graphAfter))).toMatchObject({
+      risk: "high-risk-structural",
+      graphQaRequired: true,
+      requiredTests: expect.arrayContaining(["graph-qa"]),
+    });
+  });
 });

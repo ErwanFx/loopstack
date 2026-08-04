@@ -61,9 +61,13 @@ After compaction, trust the ledger, plan hash, manifests, and git history; never
 
 Build and prove the work-item state machine separately from the prompt-cycle controller. The runtime path must perform actual repeated maker/checker invocations from persisted `AgentRunRequest` snapshots; a cron or workflow definition alone is incomplete. Test bounded continuation, wait termination, controller resume, revision conflicts, idempotency, no-progress, cost/deadline limits, and unknown-side-effect reconciliation.
 
+When the approved design contains `graph.yaml`, first run `loopstack graph validate path/to/graph.yaml` and record `loopstack graph inspect` plus the topology hash. Implement typed nodes and edges through the durable runner. Graph QA must cover conditional routing, `all`/`any` fan-in, bounded cycles, fresh reviewer context, checkpoint/resume, resource locks, budgets, and runtime equivalence. Hermès remains sequential per profile (`maxConcurrency: 1`); Claude Code dynamic workflows are optional and both Claude Code and Codex keep a sequential fallback.
+
+The improvement node produces a proposal only. Build must not silently modify the active graph, prompts, plugin skills, gates, permissions, anchors, or evaluation rules.
+
 ### QA
 
-Run QA automatically after implementation. Validate manifests, connections, storage, permissions, idempotency, alerts, maker/checker correction, controller resume, work-item transitions and SLAs, scenarios, shadow/canary simulation, failure recovery, and unresolved blockers. A score cannot override a blocker.
+Run QA automatically after implementation. Validate manifests, connections, storage, permissions, idempotency, alerts, maker/checker correction, controller resume, optional graph execution and graph QA, work-item transitions and SLAs, scenarios, shadow/canary simulation, failure recovery, and unresolved blockers. A score cannot override a blocker.
 
 ## Stop conditions
 

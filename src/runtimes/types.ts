@@ -1,4 +1,6 @@
 import type { LoopDefinition } from "../domain/types.js";
+import type { PromptGraphDefinition } from "../graph/types.js";
+import type { GraphExecutionEntryContract } from "../graph/runtime-types.js";
 
 export const runtimeNames = ["hermes", "claude-code", "codex"] as const;
 export type RuntimeName = (typeof runtimeNames)[number];
@@ -12,6 +14,7 @@ export type RuntimePreflightInput = {
   requiredTools: string[];
   deliveryTarget?: string;
   profile?: string;
+  graph?: PromptGraphDefinition;
 };
 
 export type RuntimePreflight = {
@@ -33,6 +36,26 @@ export type RuntimeRenderInput = {
   alertPolicy?: string;
   workDirectory?: string;
   deliveryTarget?: string;
+  graph?: PromptGraphDefinition;
+};
+
+export type RuntimeGraphCapabilities = {
+  freshSessions: true;
+  sequentialFallback: true;
+  maxConcurrency: number;
+  dynamicWorkflow?: "optional";
+};
+
+export type RuntimeGraphExecution = GraphExecutionEntryContract & {
+  agentBindings: Array<{
+    id: string;
+    profile?: string;
+    sessionPolicy: "fresh" | "resume";
+    maxConcurrency: number;
+    requiredSkills: string[];
+    requiredTools: string[];
+  }>;
+  capabilities: RuntimeGraphCapabilities;
 };
 
 export type RenderedTrigger = {
@@ -72,6 +95,7 @@ export type RenderedRuntimePackage = {
   guardrails: LoopDefinition["guardrails"];
   serviceLevels: LoopDefinition["serviceLevels"];
   promptCycle: PromptCycleEntryContract;
+  graphExecution?: RuntimeGraphExecution;
   workDirectory: string;
   files: Record<string, string>;
   [key: string]: unknown;

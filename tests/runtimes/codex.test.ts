@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { LoopDefinitionSchema } from "../../src/domain/schemas.js";
 import { CodexRuntimeAdapter } from "../../src/runtimes/codex.js";
+import { portableGraph } from "../fixtures/prompt-graph.js";
 
 const loop = LoopDefinitionSchema.parse({
   id: "pv-admin",
@@ -24,6 +25,20 @@ const loop = LoopDefinitionSchema.parse({
     onBreach: "pause",
   }],
   serviceLevels: [{ metric: "dossier_cycle_hours", operator: "lte", threshold: 192, appliesTo: 0.9 }],
+});
+
+describe("Codex graph execution", () => {
+  it("renders the portable graph with fresh sessions and a sequential fallback", async () => {
+    const rendered = await new CodexRuntimeAdapter().render({
+      loop,
+      graph: { ...portableGraph, loopId: loop.id },
+    });
+    expect(rendered.graphExecution).toMatchObject({
+      executionMode: "single-agent-multi-session",
+      capabilities: { freshSessions: true, sequentialFallback: true },
+    });
+    expect(rendered.files["graph.json"]).toBeDefined();
+  });
 });
 
 describe("Codex runtime adapter", () => {
