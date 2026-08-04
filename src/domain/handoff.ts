@@ -100,9 +100,7 @@ function allowedNextSkills(skill: string, routeVersion?: "v1" | "v2"): readonly 
 function assertGateEvidenceStructure(
   handoff: Handoff,
   gate: GateKind,
-  now = new Date(),
 ): void {
-  if (Number.isNaN(now.getTime())) throw new InvalidHandoffError(`${gate} requires a valid current time`);
   if (handoff.route_version !== "v2") {
     throw new InvalidHandoffError(`Gate ${gate} requires a v2 handoff`);
   }
@@ -117,12 +115,6 @@ function assertGateEvidenceStructure(
   if (handoff.artifact_hashes[evidence.artifact] !== evidence.artifact_hash) {
     throw new InvalidHandoffError(`${gate} evidence hash does not match the attached artifact hash`);
   }
-  if (Date.parse(evidence.approved_at) > now.getTime()) {
-    throw new InvalidHandoffError(`${gate} evidence approval time is in the future`);
-  }
-  if (Date.parse(evidence.expires_at) <= now.getTime()) {
-    throw new InvalidHandoffError(`${gate} evidence has expired`);
-  }
 }
 
 export function assertGateAuthorization(
@@ -131,10 +123,17 @@ export function assertGateAuthorization(
   trust: GateTrustContext | undefined,
   now = new Date(),
 ): void {
-  assertGateEvidenceStructure(handoff, gate, now);
+  assertGateEvidenceStructure(handoff, gate);
+  if (Number.isNaN(now.getTime())) throw new InvalidHandoffError(`${gate} requires a valid current time`);
   if (!trust) throw new InvalidHandoffError(`${gate} requires an external trust context`);
   if (handoff.route_version !== "v2") throw new InvalidHandoffError(`Gate ${gate} requires a v2 handoff`);
   const evidence = handoff.gate_evidence.find((candidate) => candidate.gate === gate)!;
+  if (Date.parse(evidence.approved_at) > now.getTime()) {
+    throw new InvalidHandoffError(`${gate} evidence approval time is in the future`);
+  }
+  if (Date.parse(evidence.expires_at) <= now.getTime()) {
+    throw new InvalidHandoffError(`${gate} evidence has expired`);
+  }
   if (!trust.trustedEvidenceHashes.includes(hashGateEvidence(evidence))) {
     throw new InvalidHandoffError(`${gate} evidence is not present in the trusted approval registry`);
   }
