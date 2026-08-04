@@ -35,7 +35,7 @@ Good: “**Qualified as AI Loop.** Readiness blocked for **activation** (list). 
 
 Choose **exactly one** and give evidence:
 
-1. **AI Loop** — recurring decisions + bounded actions + measurable feedback + iteration
+1. **AI Loop** — recurring decisions + bounded actions + measurable feedback + an executable controller that repeatedly prompts an agent from durable state
 2. **AI-assisted workflow** — humans drive; AI helps steps without a closed optimising cycle
 3. **deterministic automation** — rules fully determine the output (prefer this when true)
 4. **on-demand agent task** — each run starts from a human request; no durable cadence/state needed
@@ -61,6 +61,15 @@ Choose **exactly one** and give evidence:
 | Bounded action space | allowed / forbidden actions named |
 | Measurable feedback | metric + source + delay |
 | Iteration | results change future runs |
+| Agent prompt cycle | a bounded controller issues a new maker/checker prompt after persisted evaluation |
+
+A cron, webhook, state machine, or dashboard alone is not an AI Loop. The initiating trigger may be a cron, webhook, event, queue, or human request; what qualifies the system is the repeated agent prompt cycle and measurable feedback, not the trigger type.
+
+For an AI Loop, also select exactly one architecture shape:
+
+- `control-loop` for one recurring unit without a long-lived case;
+- `workflow-with-control-loop` for durable work items, waits, gates, and an embedded agent control loop;
+- `multi-loop-system` only when independent loops have separate owners, targets, or feedback horizons.
 
 If classification is **not** AI Loop: stop after recommending the pattern. **Do not** run readiness as a fake AI Loop gate. `next_skill: null`.
 

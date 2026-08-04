@@ -59,9 +59,11 @@ For each task:
 
 After compaction, trust the ledger, plan hash, manifests, and git history; never replay a completed mutation.
 
+Build and prove the work-item state machine separately from the prompt-cycle controller. The runtime path must perform actual repeated maker/checker invocations from persisted `AgentRunRequest` snapshots; a cron or workflow definition alone is incomplete. Test bounded continuation, wait termination, controller resume, revision conflicts, idempotency, no-progress, cost/deadline limits, and unknown-side-effect reconciliation.
+
 ### QA
 
-Run QA automatically after implementation. Validate manifests, connections, storage, permissions, idempotency, alerts, scenarios, shadow/canary simulation, failure recovery, and unresolved blockers. A score cannot override a blocker.
+Run QA automatically after implementation. Validate manifests, connections, storage, permissions, idempotency, alerts, maker/checker correction, controller resume, work-item transitions and SLAs, scenarios, shadow/canary simulation, failure recovery, and unresolved blockers. A score cannot override a blocker.
 
 ## Stop conditions
 

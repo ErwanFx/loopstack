@@ -29,7 +29,7 @@ Load only the branch needed:
 
 ## Continuous operation
 
-Read-only monitoring and inspection remain inside `loop-operate`; do not announce internal skill transitions. Record canonical health, version, target/current/gap, costs, pending approvals, alerts, follow-ups, and learnings.
+Read-only monitoring and inspection remain inside `loop-operate`; do not announce internal skill transitions. Record canonical health, version, target/current/gap, costs, pending approvals, alerts, follow-ups, and learnings. For durable processes, report work-item SLA compliance, state distribution, overdue `waiting-human` and `waiting-external` cases, pending gates, revision conflicts, and resume failures.
 
 For incidents, reconstruct the timeline and classify side effects as completed, failed, or unknown. Reconcile unknown outcomes before retrying.
 

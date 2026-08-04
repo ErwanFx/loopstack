@@ -27,6 +27,8 @@ Require:
 
 Do not accept scheduler creation, command success, or a numeric score as proof of external readiness.
 
+Render and review an inert activation plan before mutation. Only this skill may execute its argument-array operations after fresh activation approval; verify the controller entry command, disabled typed triggers, HMAC/idempotency, delivery target, list/test checks, and removal commands first.
+
 ## Rollout
 
 ```text

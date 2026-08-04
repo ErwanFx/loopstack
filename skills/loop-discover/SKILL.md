@@ -18,12 +18,12 @@ Load only when needed:
 
 ## Process
 
-1. Inspect existing context, artifacts, systems, and the last real unit of work.
+1. Inspect existing context, artifacts, systems, and the last real work item end to end.
 2. Ask one question at a time only when evidence cannot be retrieved.
 3. Verify named systems and pull a real baseline sample where possible.
 4. Define outcome, source of truth, current state, horizon, constraints, owner, and human gates.
 5. Compare at least two approaches, including a simpler non-loop option.
-6. Classify the process.
+6. Classify the process and, for an AI Loop, select its architecture shape: `control-loop`, `workflow-with-control-loop`, or `multi-loop-system`.
 7. If it is an AI Loop, run readiness immediately.
 8. Write discovery, qualification, readiness, runtime-skill map, and one consolidated handoff.
 
@@ -43,6 +43,7 @@ Stop only when:
 ## Completion criteria
 
 - classification is explicit and evidenced;
+- architecture shape is explicit for every AI Loop;
 - baseline is measured, qualified as estimated, or explicitly unknown;
 - sources of truth and activation blockers are named;
 - v1 human gates and progressive autonomy criteria are captured;

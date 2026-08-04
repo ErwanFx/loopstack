@@ -22,6 +22,9 @@ Include:
 7. unit, contract, failure, alert, idempotency, shadow, canary, rollback, and E2E tests;
 8. monitoring, ownership, budgets, recovery, and kill switch;
 9. exact out-of-scope actions.
+10. work-item state machine, optimistic revision, idempotent resume triggers, and waiting-state SLAs;
+11. prompt-cycle controller requests/results/checkpoints, maker/checker permissions, limits, reconciliation, and restart behavior;
+12. governed learning-proposal tests and runtime-specific mutable target.
 
 ## Task sizing
 

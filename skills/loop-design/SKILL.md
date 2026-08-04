@@ -45,10 +45,14 @@ functional draft
 Use exactly:
 
 ```text
-Target → Observe → Evaluate → Act → Learn → Decide
+Target → Observe state → Evaluate/Plan → Act → Observe result → Evaluate outcome → Learn → Decide
 ```
 
-Show sources of truth, target/current/gap, triggers, actions, human gates, runtime skills, feedback horizons, limits, rollout, and the runtime-selected Learn adapter.
+This complete cycle is canonical; a compact six-box summary is explanatory only. Show the pre-action and post-action observation/evaluation moments separately in machine artifacts and detailed visuals.
+
+When the architecture is `workflow-with-control-loop`, put two distinct views in the same owner artifact: the durable business process (`process.yaml`, work-item states, `waiting-human`, `waiting-external`, deadlines) and the agent control loop. Specify the executable maker/checker prompt cycle using versioned `AgentRunRequest` objects and durable checkpoints. A waiting decision ends the current agent run; a later resume trigger starts a new run from stored state.
+
+Show sources of truth, target/current/gap, typed triggers with `enabled: false` and idempotency, actions, typed human gates with timeout behavior, runtime skills, feedback horizons, limits, rollout, and the runtime-selected Learn adapter.
 
 Use the runtime capability map in `references/runtime-learning.md`. Prefer the runtime's native diagram skill when available; otherwise produce a self-contained HTML/SVG fallback with its normal file-generation tools.
 
