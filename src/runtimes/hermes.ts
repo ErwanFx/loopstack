@@ -13,7 +13,8 @@ import type {
 import { ActivationPlanSchema, createHermesActivationPlan, type ActivationPlan } from "./activation-plan.js";
 import { renderGraphExecution } from "./graph-execution.js";
 import { generatedLoopSkillName, safeDisplayName } from "./render-helpers.js";
-import { hermesHasEnabledTool } from "./preflight-inspection.js";
+import { hermesHasEnabledTool, listHasExactIdentifier } from "./preflight-inspection.js";
+import { addPackageIntegrityManifest, validatePackageIntegrity } from "./package-integrity.js";
 
 type HermesRenderedPackage = RenderedRuntimePackage & {
   webhook: { route: string; secretEnv: string; skills: string[]; idempotencyHeader: string };
@@ -118,7 +119,7 @@ export class HermesRuntimeAdapter implements RuntimeAdapter {
     return {
       ...portable,
       activationPlan,
-      files: {
+      files: addPackageIntegrityManifest(this.name, loop.id, loop.version, {
         "runtime.json": `${JSON.stringify(portable, null, 2)}\n`,
         "webhook-route.yaml": `route: ${webhook.route}\nsecret_env: ${secretEnv}\nenabled: false\n`,
         "cron-job.yaml": `loop_id: ${loop.id}\nenabled: false\n`,
@@ -128,7 +129,7 @@ export class HermesRuntimeAdapter implements RuntimeAdapter {
           "graph.json": graphPackage.graphFile,
           "graph-binding.json": `${JSON.stringify(graphPackage.execution, null, 2)}\n`,
         }),
-      },
+      }),
     };
   }
 
@@ -165,10 +166,10 @@ export class HermesRuntimeAdapter implements RuntimeAdapter {
       ...(input.graph?.agents.flatMap((agent) => agent.requiredSkills) ?? []),
     ]);
     if (profile.exitCode === 0) for (const required of requiredProfiles) {
-      if (!profile.stdout.includes(required)) blockers.push(`profile:${required}`);
+      if (!listHasExactIdentifier(profile.stdout, required)) blockers.push(`profile:${required}`);
     }
     if (skills.exitCode === 0) for (const required of requiredSkills) {
-      if (!skills.stdout.includes(required)) blockers.push(`skill:${required}`);
+      if (!listHasExactIdentifier(skills.stdout, required)) blockers.push(`skill:${required}`);
     }
     if (tools.exitCode === 0) for (const required of input.requiredTools) {
       if (!hermesHasEnabledTool(tools.stdout, required)) blockers.push(`tool:${required}`);
@@ -188,6 +189,10 @@ export class HermesRuntimeAdapter implements RuntimeAdapter {
 
   async validate(packagePath: string): Promise<RuntimeValidation> {
     try {
+      const integrity = await validatePackageIntegrity(packagePath, this.name);
+      if (integrity.manifest === null || integrity.errors.length > 0) {
+        return { valid: false, errors: integrity.errors };
+      }
       await access(`${packagePath}/runtime.json`, constants.R_OK);
       const runtime = JSON.parse(await readFile(`${packagePath}/runtime.json`, "utf8")) as Record<string, unknown>;
       const activationPlan = ActivationPlanSchema.parse(
@@ -196,6 +201,12 @@ export class HermesRuntimeAdapter implements RuntimeAdapter {
       if (runtime.runtime !== "hermes") throw new Error("runtime.json must declare the hermes runtime");
       if (typeof runtime.loopId !== "string" || runtime.loopId !== activationPlan.loopId) {
         throw new Error("runtime.json and activation-plan.json loop ids must match");
+      }
+      if (runtime.loopId !== integrity.manifest.loopId || activationPlan.loopId !== integrity.manifest.loopId) {
+        throw new Error("runtime and activation plan loop ids must match package manifest loopId");
+      }
+      if (runtime.version !== integrity.manifest.version || activationPlan.version !== integrity.manifest.version) {
+        throw new Error("runtime and activation plan versions must match package manifest version");
       }
       return { valid: true, errors: [] };
     } catch (error) {

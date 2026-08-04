@@ -30,4 +30,30 @@ describe("runtime graph command", () => {
     expect(runtime.workDirectory).toBe(dirname(loopPath));
     expect(runtime.promptCycle.entry.args).toEqual(["prompt-cycle", "run", "--loop", dirname(loopPath)]);
   });
+
+  it("renders an inert schema-valid package while explicitly reporting build-not-ready", async () => {
+    const root = mkdtempSync(join(tmpdir(), "loopstack-runtime-inert-"));
+    const loopPath = join(root, "loop.yaml");
+    const outputPath = join(root, "rendered");
+    writeFileSync(loopPath, `schemaVersion: 3
+id: inert-loop
+name: Inert Loop
+version: 1
+status: designing
+target: { metric: leads, desired: 3, horizonDays: 30 }
+current: { value: 1, observedAt: "2026-08-01T00:00:00.000Z" }
+triggers: [{ type: manual }]
+feedback: [{ metric: leads, delayDays: 7 }]
+`);
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    expect(await runRuntimeRenderCommand(["--runtime", "codex", "--loop", loopPath, "--out", outputPath])).toBe(0);
+    expect(JSON.parse(String(log.mock.calls[0]?.[0]))).toMatchObject({
+      schemaValid: true,
+      buildReady: false,
+      triggersEnabled: false,
+      packageTrust: "self-consistency-only",
+    });
+    expect(existsSync(join(outputPath, "package-manifest.json"))).toBe(true);
+    log.mockRestore();
+  });
 });

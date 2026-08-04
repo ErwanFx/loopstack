@@ -35,7 +35,9 @@ describe("runtime validate command", () => {
     const code = await runRuntimeValidateCommand(["--runtime", "codex", "--package", root]);
 
     expect(code).toBe(0);
-    expect(log).toHaveBeenCalledWith(JSON.stringify({ runtime: "codex", packagePath: root, valid: true, errors: [] }));
+    expect(log).toHaveBeenCalledWith(JSON.stringify({
+      runtime: "codex", packagePath: root, trust: "self-consistency-only", valid: true, errors: [],
+    }));
     log.mockRestore();
   });
 

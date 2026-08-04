@@ -119,4 +119,14 @@ describe("Claude Code runtime adapter", () => {
       "tool:openseo",
     ]));
   });
+
+  it("requires the exact structured Claude authentication assertion", async () => {
+    const adapter = new ClaudeCodeRuntimeAdapter(async (_command, args) => {
+      const joined = args.join(" ");
+      if (joined === "auth status") return { exitCode: 0, stdout: "authentication check passed", stderr: "" };
+      if (joined === "plugin list --json") return { exitCode: 0, stdout: JSON.stringify([{ id: "loopstack-seo-growth", enabled: true }]), stderr: "" };
+      return { exitCode: 0, stdout: "[]", stderr: "" };
+    });
+    expect((await adapter.preflight({ loop, requiredSkills: [], requiredTools: [] })).authenticatedProfile).toBe(false);
+  });
 });

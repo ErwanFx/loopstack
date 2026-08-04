@@ -1,4 +1,4 @@
-import { createHandoff, resolveHandoffTarget, shouldAutoContinue, type GateTrustContext } from "./handoff.js";
+import { createHandoff, resolveHandoffTargetUnsafe, shouldAutoContinue, type GateTrustContext } from "./handoff.js";
 import type { PublicJourney } from "./types.js";
 
 export type PublicTransitionExecutor = {
@@ -20,7 +20,7 @@ export function runPublicTransition(
 ): PublicTransitionResult {
   const handoff = createHandoff(input);
   if (!shouldAutoContinue(handoff, trust)) return { kind: "stopped", target: null };
-  const target = resolveHandoffTarget(handoff);
+  const target = resolveHandoffTargetUnsafe(handoff);
   if (!target) return { kind: "stopped", target: null };
   executor.routePublicSkill(target);
   return { kind: "routed", target };

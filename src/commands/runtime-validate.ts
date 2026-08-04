@@ -20,7 +20,7 @@ export async function runRuntimeValidateCommand(args: readonly string[]): Promis
   const packagePath = resolve(rawPackagePath);
   try {
     const validation = await createRuntimeAdapter(runtime).validate(packagePath);
-    const result = { runtime, packagePath: rawPackagePath, ...validation };
+    const result = { runtime, packagePath: rawPackagePath, trust: "self-consistency-only" as const, ...validation };
     if (!validation.valid) {
       console.error(JSON.stringify({ code: "RUNTIME_VALIDATION_FAILED", ...result }));
       return 2;

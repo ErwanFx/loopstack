@@ -15,9 +15,11 @@ describe("fixture-driven core workflow", () => {
     expect(result.classification).toBe("deterministic automation");
   });
 
-  it("blocks unsafe outreach without approval, stop, and tested alerts", () => {
+  it("keeps schema validity separate from readiness for unsafe outreach", () => {
     const result = validateLoopFile("tests/fixtures/processes/unsafe-outreach.yaml");
-    expect(result.valid).toBe(false);
+    expect(result.valid).toBe(true);
+    expect(result.schemaValid).toBe(true);
+    expect(result.buildReady).toBe(false);
     expect(result.readiness.blocking).toEqual(expect.arrayContaining([
       "approval_policy",
       "stop_and_escalation",

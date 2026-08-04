@@ -1,11 +1,10 @@
 import { spawn } from "node:child_process";
-import { readFileSync } from "node:fs";
-import { parse } from "yaml";
-import { LoopDefinitionSchema } from "../domain/schemas.js";
+
 import { createRuntimeAdapter } from "../runtimes/registry.js";
 import type { CommandRunner } from "../runtimes/types.js";
 import { PromptGraphDefinitionSchema } from "../graph/schemas.js";
 import { generatedLoopSkillName } from "../runtimes/render-helpers.js";
+import { loadLoopDocument, loadStructuredDocument } from "./document-loader.js";
 
 export const commandRunner: CommandRunner = (command, args) => new Promise((resolve) => {
   const child = spawn(command, [...args], {
@@ -35,18 +34,18 @@ export async function runRuntimePreflightCommand(args: readonly string[]): Promi
     return 2;
   }
   try {
-    const document = parse(readFileSync(loopPath, "utf8")) as { loop?: unknown; tools?: string[] };
-    const loop = LoopDefinitionSchema.parse(document.loop);
+    const document = loadLoopDocument(loopPath);
+    const loop = document.loop;
     const graph = graphPath === undefined
       ? undefined
-      : PromptGraphDefinitionSchema.parse(parse(readFileSync(graphPath, "utf8")));
+      : PromptGraphDefinitionSchema.parse(loadStructuredDocument(graphPath));
     if (graph !== undefined && graph.loopId !== loop.id) {
       throw new Error(`Graph loopId ${graph.loopId} does not match loop ${loop.id}`);
     }
     const result = await createRuntimeAdapter(runtime, commandRunner).preflight({
       loop,
       requiredSkills: [generatedLoopSkillName(loop.id)],
-      requiredTools: document.tools ?? [],
+      requiredTools: document.tools,
       ...(profile === undefined ? {} : { profile }),
       ...(graph === undefined ? {} : { graph }),
     });

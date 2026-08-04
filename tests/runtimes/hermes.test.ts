@@ -191,6 +191,22 @@ describe("Hermes runtime adapter", () => {
     expect(commands.some((command) => command.includes("create"))).toBe(false);
   });
 
+  it("requires exact profile and skill identities instead of substring matches", async () => {
+    const adapter = new HermesRuntimeAdapter(async (_command, args) => {
+      if (args.join(" ") === "profile list") return { exitCode: 0, stdout: "ecoi-seo-old\n", stderr: "" };
+      if (args.includes("skills")) return { exitCode: 0, stdout: "seo-growth-loop-old\n", stderr: "" };
+      return { exitCode: 0, stdout: "ok\n", stderr: "" };
+    });
+    const result = await adapter.preflight({
+      loop,
+      profile: "ecoi-seo",
+      requiredSkills: ["seo-growth-loop"],
+      requiredTools: [],
+    });
+    expect(result.blockers).toEqual(expect.arrayContaining(["profile:ecoi-seo", "skill:seo-growth-loop"]));
+    expect(result.authenticatedProfile).toBe(false);
+  });
+
   it("verifies enabled built-in and MCP tools without changing their configuration", async () => {
     const commands: string[][] = [];
     const adapter = new HermesRuntimeAdapter(async (command, args) => {

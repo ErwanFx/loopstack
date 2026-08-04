@@ -180,4 +180,14 @@ describe("Codex runtime adapter", () => {
       "tool:documents",
     ]));
   });
+
+  it("requires an exact Codex login status instead of any successful command", async () => {
+    const adapter = new CodexRuntimeAdapter(async (_command, args) => {
+      const joined = args.join(" ");
+      if (joined === "login status") return { exitCode: 0, stdout: "authentication check passed", stderr: "" };
+      if (joined === "plugin list --json") return { exitCode: 0, stdout: JSON.stringify({ installed: [{ name: "loopstack-pv-admin", installed: true, enabled: true }] }), stderr: "" };
+      return { exitCode: 0, stdout: "[]", stderr: "" };
+    });
+    expect((await adapter.preflight({ loop, requiredSkills: [], requiredTools: [] })).authenticatedProfile).toBe(false);
+  });
 });

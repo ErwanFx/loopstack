@@ -70,6 +70,8 @@ export async function runPromptCycleCommand(args: readonly string[]): Promise<nu
     assertRunContract(contract);
     const outcome = await runPromptCycle(contract.input, contract.dependencies);
     console.log(JSON.stringify(outcome));
+    if (outcome.decision === "stop-failure") return 1;
+    if (outcome.decision === "escalate") return 3;
     return 0;
   } catch (error) {
     console.error(JSON.stringify({
