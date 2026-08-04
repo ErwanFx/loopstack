@@ -17,6 +17,7 @@ alertPolicy: on-failure
 target:
   metric: qualified_leads
   desired: 40
+  direction: at-least
   horizonDays: 90
 feedback:
   - metric: qualified_leads

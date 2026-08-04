@@ -11,7 +11,7 @@
   ],
   "approvalRequired": true,
   "alertPolicy": "on-failure",
-  "target": { "metric": "qualified_leads", "desired": 40, "horizonDays": 90 },
+  "target": { "metric": "qualified_leads", "desired": 40, "direction": "at-least", "horizonDays": 90 },
   "feedback": [{ "metric": "qualified_leads", "delayDays": 30 }],
   "permissions": { "allow": [] },
   "externalTriggerRequirements": [

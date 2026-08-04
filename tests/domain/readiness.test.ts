@@ -61,4 +61,24 @@ describe("strict readiness gate", () => {
     expect(report.status).toBe("blocked");
     expect(report.blocking).toContain("named_owner");
   });
+
+  it("requires typed trigger, guardrail, and human-gate controls for v3 activation", () => {
+    const v3: ReadinessCandidate = {
+      ...completeCandidate,
+      contractVersion: 3,
+      primaryTriggers: [{ idempotencyKey: "client_id+visit_version" }],
+      consequentialActions: ["submit-mairie"],
+      humanGates: [{
+        beforeAction: "submit-mairie",
+        choices: ["approve", "reject"],
+        timeoutHours: 48,
+        onTimeout: "escalate",
+      }],
+      guardrailActions: ["pause"],
+    };
+    expect(evaluateReadiness(v3).status).toBe("ready");
+    expect(evaluateReadiness({ ...v3, primaryTriggers: [] }).blocking).toContain("primary_trigger_policy");
+    expect(evaluateReadiness({ ...v3, humanGates: [] }).blocking).toContain("consequential_human_gates");
+    expect(evaluateReadiness({ ...v3, guardrailActions: [] }).blocking).toContain("guardrail_response");
+  });
 });

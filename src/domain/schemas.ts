@@ -28,10 +28,12 @@ const MetricKeySchema = z
   .min(1)
   .regex(/^[a-z0-9]+(?:[_-][a-z0-9]+)*$/, "Use a stable lowercase metric key");
 
-const MeasurementTargetSchema = z.object({
+export const MeasurementTargetSchema = z.object({
   metric: MetricKeySchema,
   desired: z.number().finite(),
   horizonDays: z.number().int().positive(),
+  direction: z.enum(["at-least", "at-most", "equal"]).default("at-least"),
+  sourceOfTruth: z.string().min(1).optional(),
 });
 
 const CurrentMeasurementSchema = z.object({
@@ -39,8 +41,18 @@ const CurrentMeasurementSchema = z.object({
   observedAt: z.iso.datetime(),
 });
 
-const TriggerSchema = z.object({
+export const TriggerSchema = z.object({
+  id: LoopIdSchema.optional(),
   type: z.enum(["manual", "cron", "webhook", "event", "queue"]),
+  role: z.enum(["primary", "recovery", "watchdog", "resume"]).default("primary"),
+  enabled: z.literal(false).default(false),
+  source: z.string().min(1).optional(),
+  event: z.string().min(1).optional(),
+  idempotencyKey: z.string().min(1).optional(),
+  debounceSeconds: z.number().int().nonnegative().optional(),
+  replayWindowHours: z.number().int().positive().optional(),
+  payloadSchemaRef: z.string().min(1).optional(),
+  recoveryPurpose: z.string().min(1).optional(),
   configuration: z.record(z.string(), z.unknown()).optional(),
 });
 
@@ -53,17 +65,53 @@ export const ApprovalPolicySchema = z.object({
   mode: z.enum(["always", "conditional", "never"]),
   requiredFor: z.array(z.string()).default([]),
   approvers: z.array(z.string()).default([]),
+  gates: z.array(z.object({
+    id: LoopIdSchema,
+    beforeAction: LoopIdSchema,
+    risk: z.enum(["low", "medium", "high"]),
+    conditions: z.array(z.string().min(1)).min(1),
+    evidenceArtifacts: z.array(z.string().min(1)).min(1),
+    choices: z.array(z.enum(["approve", "edit", "reject", "request-information"]))
+      .min(1)
+      .refine((choices) => choices.includes("approve"), "Human gate choices must include approve"),
+    approvers: z.array(z.string().min(1)).min(1),
+    timeoutHours: z.number().positive(),
+    onTimeout: z.enum(["escalate", "reject", "pause"]),
+    onReject: LoopIdSchema,
+    resumeFrom: LoopIdSchema,
+  })).default([]),
+});
+
+export const GuardrailSchema = z.object({
+  metric: MetricKeySchema,
+  operator: z.enum(["lt", "lte", "eq", "gte", "gt"]),
+  threshold: z.number().finite(),
+  sourceOfTruth: z.string().min(1),
+  evaluationWindowDays: z.number().int().positive(),
+  onBreach: z.enum(["pause", "stop", "escalate"]),
+});
+
+export const ServiceLevelSchema = z.object({
+  metric: MetricKeySchema,
+  operator: z.enum(["lt", "lte", "eq", "gte", "gt"]),
+  threshold: z.number().finite(),
+  appliesTo: z.number().min(0).max(1),
 });
 
 export const LoopDefinitionSchema = z.object({
+  schemaVersion: z.literal(3).default(3),
   id: LoopIdSchema,
   name: z.string().min(1),
   version: z.number().int().positive(),
   status: LoopStatusSchema,
+  architectureShape: z.enum(["control-loop", "workflow-with-control-loop", "multi-loop-system"])
+    .default("control-loop"),
   target: MeasurementTargetSchema,
   current: CurrentMeasurementSchema,
   triggers: z.array(TriggerSchema).min(1),
   feedback: z.array(FeedbackSchema).min(1),
+  guardrails: z.array(GuardrailSchema).default([]),
+  serviceLevels: z.array(ServiceLevelSchema).default([]),
   approval: ApprovalPolicySchema.optional(),
 });
 
