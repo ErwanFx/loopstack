@@ -102,7 +102,10 @@ export class FilesystemWorkItemMutationStore implements WorkItemMutationStore {
   private async release(lock: Lock): Promise<void> {
     try {
       const current = lockSchema.parse(JSON.parse(await readFile(lock.path, "utf8")));
-      if (current.token === lock.token && current.generation === lock.generation) {
+      if (current.token === lock.token
+        && current.pid === lock.pid
+        && current.bootId === lock.bootId
+        && current.generation === lock.generation) {
         await rm(lock.path, { force: true });
         await this.syncParent(lock.path, "lock-remove-dir");
       }

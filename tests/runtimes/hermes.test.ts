@@ -1,6 +1,6 @@
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { parse } from "yaml";
 import { describe, expect, it } from "vitest";
 import { LoopDefinitionSchema } from "../../src/domain/schemas.js";
@@ -21,6 +21,15 @@ const loop = LoopDefinitionSchema.parse({
   ],
   feedback: [{ metric: "qualified_leads", delayDays: 30 }],
 });
+
+const exactCronJob = {
+  job_id: "opaque-job-123",
+  name: "loopstack:default:seo-growth:v1:cron-3",
+  schedule: "0 8 * * 1",
+  skills: ["seo-growth-loop"],
+  workdir: resolve("loops/seo-growth"),
+};
+const cronInventory = (jobs: unknown[]) => JSON.stringify({ success: true, count: jobs.length, jobs });
 
 describe("Hermes runtime adapter", () => {
   it("renders disabled manual, webhook, and schedule triggers safely", async () => {
@@ -126,6 +135,47 @@ describe("Hermes runtime adapter", () => {
     expect(result.blockers).toContain("cron_gateway");
   });
 
+  it("blocks cron readiness when structured host inspection finds no linked job", async () => {
+    const commands: string[][] = [];
+    const adapter = new HermesRuntimeAdapter(async (command, args) => {
+      commands.push([command, ...args]);
+      if (args.join(" ") === "cron list --all") return { exitCode: 0, stdout: cronInventory([]), stderr: "" };
+      if (args.join(" ") === "skills list --enabled-only") return { exitCode: 0, stdout: "seo-growth-loop\n", stderr: "" };
+      return { exitCode: 0, stdout: "default\n", stderr: "" };
+    });
+    const result = await adapter.preflight({ loop, requiredSkills: ["seo-growth-loop"], requiredTools: [] });
+    expect(commands).toContainEqual(["hermes", "cron", "list", "--all"]);
+    expect(result.triggerSupport.cron).toBe(false);
+    expect(result.blockers).toContain("cron_job:cron-3");
+  });
+
+  it("rejects a plausible cron job not bound to the exact loop version", async () => {
+    const adapter = new HermesRuntimeAdapter(async (_command, args) => {
+      if (args.join(" ") === "cron list --all") {
+        return { exitCode: 0, stdout: cronInventory([{ ...exactCronJob, name: "loopstack:default:seo-growth:v2:cron-3" }]), stderr: "" };
+      }
+      if (args.join(" ") === "skills list --enabled-only") return { exitCode: 0, stdout: "seo-growth-loop\n", stderr: "" };
+      return { exitCode: 0, stdout: "default\n", stderr: "" };
+    });
+    const result = await adapter.preflight({ loop, requiredSkills: ["seo-growth-loop"], requiredTools: [] });
+    expect(result.triggerSupport.cron).toBe(false);
+    expect(result.blockers).toContain("cron_job:cron-3");
+  });
+
+  it("accepts only an exact structured cron job and observes its opaque removal id", async () => {
+    const commands: string[][] = [];
+    const adapter = new HermesRuntimeAdapter(async (command, args) => {
+      commands.push([command, ...args]);
+      if (args.join(" ") === "cron list --all") return { exitCode: 0, stdout: cronInventory([exactCronJob]), stderr: "" };
+      if (args.join(" ") === "skills list --enabled-only") return { exitCode: 0, stdout: "seo-growth-loop\n", stderr: "" };
+      return { exitCode: 0, stdout: "default\n", stderr: "" };
+    });
+    const result = await adapter.preflight({ loop, requiredSkills: ["seo-growth-loop"], requiredTools: [] });
+    expect(result.triggerSupport.cron).toBe(true);
+    expect(result.blockers).not.toContain("cron_job:cron-3");
+    expect(commands.some((command) => command.includes("create") || command.includes("update"))).toBe(false);
+  });
+
   it("reuses one Hermes profile in fresh sequential sessions", async () => {
     const rendered = await new HermesRuntimeAdapter().render({ loop, graph: portableGraph });
 
@@ -146,6 +196,11 @@ describe("Hermes runtime adapter", () => {
     const commands: string[][] = [];
     const adapter = new HermesRuntimeAdapter(async (command, args) => {
       commands.push([command, ...args]);
+      if (args.includes("cron")) return {
+        exitCode: 0,
+        stdout: cronInventory([{ ...exactCronJob, name: "loopstack:ecoi-seo:seo-growth:v1:cron-3" }]),
+        stderr: "",
+      };
       if (args.includes("skills")) return { exitCode: 0, stdout: "seo-growth-loop\n", stderr: "" };
       if (args.includes("tools")) return { exitCode: 0, stdout: "✓ enabled web\n", stderr: "" };
       return { exitCode: 0, stdout: "ecoi-seo\n", stderr: "" };

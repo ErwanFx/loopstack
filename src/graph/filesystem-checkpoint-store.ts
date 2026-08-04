@@ -163,7 +163,10 @@ export class FilesystemGraphCheckpointStore implements GraphCheckpointStore {
   private async releaseLock(lock: { path: string; metadata: LockMetadata }): Promise<void> {
     try {
       const current = lockSchema.parse(JSON.parse(await readFile(lock.path, "utf8")));
-      if (current.token === lock.metadata.token) {
+      if (current.token === lock.metadata.token
+        && current.pid === lock.metadata.pid
+        && current.bootId === lock.metadata.bootId
+        && current.generation === lock.metadata.generation) {
         await rm(lock.path, { force: true });
         await this.syncParent(lock.path, "lock-remove-dir");
       }

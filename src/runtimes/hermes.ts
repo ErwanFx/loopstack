@@ -15,6 +15,28 @@ import { renderGraphExecution } from "./graph-execution.js";
 import { generatedLoopSkillName, safeDisplayName } from "./render-helpers.js";
 import { hermesHasEnabledTool, listHasExactIdentifier } from "./preflight-inspection.js";
 import { addPackageIntegrityManifest, validatePackageIntegrity } from "./package-integrity.js";
+import { z } from "zod";
+
+const HermesCronInventorySchema = z.object({
+  success: z.literal(true),
+  count: z.number().int().nonnegative().optional(),
+  jobs: z.array(z.object({
+    job_id: z.string().min(1),
+    name: z.string().min(1),
+    schedule: z.string().min(1),
+    skills: z.array(z.string().min(1)),
+    workdir: z.string().min(1),
+  }).passthrough()),
+}).passthrough();
+
+function commandArgument(args: readonly string[], flag: string): string | undefined {
+  const index = args.indexOf(flag);
+  return index < 0 ? undefined : args[index + 1];
+}
+
+function arraysEqual(left: readonly string[], right: readonly string[]): boolean {
+  return left.length === right.length && left.every((value, index) => value === right[index]);
+}
 
 type HermesRenderedPackage = RenderedRuntimePackage & {
   webhook: { route: string; secretEnv: string; skills: string[]; idempotencyHeader: string };
@@ -136,10 +158,19 @@ export class HermesRuntimeAdapter implements RuntimeAdapter {
   async preflight(input: RuntimePreflightInput): Promise<RuntimePreflight> {
     const profileName = selectedProfile(input);
     const scoped = (args: string[]): string[] => profileName === undefined ? args : ["-p", profileName, ...args];
-    const [cli, profile, gateway, skills, tools, webhook] = await Promise.all([
+    const preflightSkills = input.requiredSkills.length > 0
+      ? input.requiredSkills
+      : [generatedLoopSkillName(input.loop.id)];
+    const activationPlan = createHermesActivationPlan(input.loop, {
+      skills: preflightSkills,
+      ...(profileName === undefined ? {} : { profile: profileName }),
+    });
+    const cronPlans = activationPlan.triggers.filter((trigger) => trigger.type === "cron");
+    const [cli, profile, gateway, cron, skills, tools, webhook] = await Promise.all([
       this.runner("hermes", ["--help"]),
       this.runner("hermes", ["profile", "list"]),
       this.runner("hermes", scoped(["gateway", "status"])),
+      this.runner("hermes", scoped(["cron", "list", "--all"])),
       this.runner("hermes", scoped(["skills", "list", "--enabled-only"])),
       this.runner("hermes", scoped(["tools", "list"])),
       this.runner("hermes", scoped(["webhook", "list"])),
@@ -150,11 +181,42 @@ export class HermesRuntimeAdapter implements RuntimeAdapter {
     if (skills.exitCode !== 0) blockers.push("skills_directory");
     if (input.requiredTools.length > 0 && tools.exitCode !== 0) blockers.push("required_tools");
     const webhookOutput = `${webhook.stdout}\n${webhook.stderr}`;
-    const cronReady = gateway.exitCode === 0;
+    let cronInventory: z.infer<typeof HermesCronInventorySchema> | null = null;
+    if (cron.exitCode === 0) {
+      try {
+        const parsed = HermesCronInventorySchema.safeParse(JSON.parse(cron.stdout));
+        if (parsed.success && (parsed.data.count === undefined || parsed.data.count === parsed.data.jobs.length)) {
+          cronInventory = parsed.data;
+        }
+      } catch { /* non-JSON host output fails closed */ }
+    }
+    const exactCronJobs = new Map<string, boolean>();
+    for (const trigger of cronPlans) {
+      const createIndex = trigger.activation.args.indexOf("create");
+      const expectedSchedule = createIndex < 0 ? undefined : trigger.activation.args[createIndex + 1];
+      const expectedName = commandArgument(trigger.activation.args, "--name");
+      const expectedWorkdir = commandArgument(trigger.activation.args, "--workdir");
+      const matches = cronInventory?.jobs.filter((job) => job.name === expectedName
+        && job.schedule === expectedSchedule
+        && job.workdir === expectedWorkdir
+        && arraysEqual(job.skills, activationPlan.skills)
+        && job.job_id !== job.name
+        && job.job_id !== trigger.id) ?? [];
+      exactCronJobs.set(trigger.id, matches.length === 1);
+    }
+    const cronReady = gateway.exitCode === 0
+      && cronInventory !== null
+      && cronPlans.every((trigger) => exactCronJobs.get(trigger.id) === true);
     const webhookReady = gateway.exitCode === 0
       && webhook.exitCode === 0
       && !/not enabled|disabled/i.test(webhookOutput);
-    if (input.loop.triggers.some((trigger) => trigger.type === "cron") && !cronReady) blockers.push("cron_gateway");
+    if (cronPlans.length > 0) {
+      if (gateway.exitCode !== 0) blockers.push("cron_gateway");
+      if (cronInventory === null) blockers.push("cron_inventory");
+      for (const trigger of cronPlans) {
+        if (exactCronJobs.get(trigger.id) !== true) blockers.push(`cron_job:${trigger.id}`);
+      }
+    }
     if (input.loop.triggers.some((trigger) => trigger.type === "webhook") && !webhookReady) blockers.push("webhook_gateway");
 
     const requiredProfiles = new Set([

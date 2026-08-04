@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -251,6 +251,25 @@ describe("resumable work items with durable authority", () => {
     const store = new FilesystemWorkItemMutationStore(root, () => new Date("2026-08-04T10:00:01.000Z"), 10);
     await store.initialize(created);
     expect(await store.load(created.loopId, created.id)).toEqual(created);
+  });
+
+  it.each([
+    ["pid", (lock: Record<string, unknown>) => ({ ...lock, pid: Number(lock.pid) + 1 })],
+    ["bootId", (lock: Record<string, unknown>) => ({ ...lock, bootId: "00000000-0000-4000-8000-000000000098" })],
+    ["generation", (lock: Record<string, unknown>) => ({ ...lock, generation: Number(lock.generation) + 1 })],
+  ])("does not remove a work-item lock replaced with the same token but different %s", async (_field, replaceOwner) => {
+    const root = await mkdtemp(join(tmpdir(), "loopstack-work-item-release-fence-"));
+    const created = item("release-fence");
+    const lockPath = join(root, created.loopId, `${created.id}.json.lock`);
+    let replacement: Record<string, unknown> | undefined;
+    const store = new FilesystemWorkItemMutationStore(root, hostNow, 5_000, (event) => {
+      if (event !== "state-rename-dir") return;
+      const acquired = JSON.parse(readFileSync(lockPath, "utf8")) as Record<string, unknown>;
+      replacement = replaceOwner(acquired);
+      writeFileSync(lockPath, JSON.stringify(replacement));
+    });
+    await store.initialize(created);
+    expect(JSON.parse(await readFile(lockPath, "utf8"))).toEqual(replacement);
   });
 
   it("fsyncs work-item state and every lock directory transition in durability order", async () => {

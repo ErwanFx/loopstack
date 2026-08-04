@@ -57,6 +57,10 @@ export function interpolateActivationCommand(
   return ArgumentCommandSchema.parse({ executable: command.executable, args });
 }
 
+export function hermesCronJobName(loopId: string, version: number, profile: string | null, triggerId: string): string {
+  return `loopstack:${profile ?? "default"}:${loopId}:v${version}:${triggerId}`;
+}
+
 export function createHermesActivationPlan(
   loop: LoopDefinition,
   options: { skills?: string[]; deliveryTarget?: string; workDirectory?: string; profile?: string } = {},
@@ -88,7 +92,7 @@ export function createHermesActivationPlan(
           executable: "hermes",
           args: [
             ...profileArgs, "cron", "create", schedule, controllerPrompt,
-            "--name", id,
+            "--name", hermesCronJobName(loop.id, loop.version, profile, id),
             "--deliver", cronDeliveryTarget,
             ...skills.flatMap((skill) => ["--skill", skill]),
             "--workdir", workDirectory,

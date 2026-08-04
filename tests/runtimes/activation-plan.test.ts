@@ -45,7 +45,7 @@ describe("inert Hermes activation plans", () => {
       args: [
         "-p", "pv-admin", "cron", "create", "0 8 * * 1",
         expect.stringContaining("loopstack prompt-cycle run"),
-        "--name", "weekly-review",
+        "--name", "loopstack:pv-admin:pv-admin:v1:weekly-review",
         "--deliver", "slack:ops-alerts",
         "--skill", "pv-admin-playbook",
         "--skill", "document-qa",

@@ -6,22 +6,19 @@ export type TransitionTrustRequest = {
   loopId: string;
   from: LoopStatus;
   to: LoopStatus;
-  now: Date;
 };
 
 /** Host-owned, consuming authorization boundary. Caller proof material is never accepted here. */
 export interface TransitionTrustResolver {
-  authorizeAndConsume(request: TransitionTrustRequest): boolean;
+  authorizeAndConsume(request: TransitionTrustRequest, hostNow: Date): boolean;
 }
 
 export type TransitionAuthorization = {
   evidenceId: string;
-  now?: Date;
 };
 
 const TransitionAuthorizationSchema = z.object({
   evidenceId: z.string().min(1),
-  now: z.date().optional(),
 }).strict();
 
 export const lifecycleTransitions: Record<LoopStatus, readonly LoopStatus[]> = {
@@ -74,17 +71,19 @@ export function transition(
   to: LoopStatus,
   authorization?: TransitionAuthorization,
   trustResolver?: TransitionTrustResolver,
+  hostNow?: Date,
 ): LoopDefinition {
   if (!canTransition(loop.status, to)) throw new InvalidTransitionError(loop.status, to, lifecycleTransitions[loop.status]);
   if (isGatedTransition(loop.status, to)) {
     const parsed = TransitionAuthorizationSchema.safeParse(authorization);
-    const accepted = parsed.success && trustResolver?.authorizeAndConsume({
-      evidenceId: parsed.data.evidenceId,
-      loopId: loop.id,
-      from: loop.status,
-      to,
-      now: parsed.data.now ?? new Date(),
-    });
+    const hostNowMs = hostNow?.getTime();
+    const accepted = parsed.success && hostNow !== undefined && Number.isFinite(hostNowMs)
+      && trustResolver?.authorizeAndConsume({
+        evidenceId: parsed.data.evidenceId,
+        loopId: loop.id,
+        from: loop.status,
+        to,
+      }, hostNow);
     if (!accepted) throw new GateEvidenceRequiredError(loop.status, to);
   }
   return { ...loop, status: to };

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync, writeFileSync } from "node:fs";
 import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -693,6 +694,31 @@ describe("durable prompt graph runner", () => {
     const store = new FilesystemGraphCheckpointStore(root, () => new Date("2026-08-04T10:00:01.000Z"), 10);
     await store.save(checkpoint);
     expect(await store.load("dead-owner-run")).toMatchObject({ runId: "dead-owner-run", status: "running" });
+  });
+
+  it.each([
+    ["pid", (lock: Record<string, unknown>) => ({ ...lock, pid: Number(lock.pid) + 1 })],
+    ["bootId", (lock: Record<string, unknown>) => ({ ...lock, bootId: "00000000-0000-4000-8000-000000000099" })],
+    ["generation", (lock: Record<string, unknown>) => ({ ...lock, generation: Number(lock.generation) + 1 })],
+  ])("does not remove a graph lock replaced with the same token but different %s", async (_field, replaceOwner) => {
+    const root = await mkdtemp(join(tmpdir(), "loopstack-graph-release-fence-"));
+    const lockPath = join(root, "release-fence-run.json.lock");
+    let replacement: Record<string, unknown> | undefined;
+    const store = new FilesystemGraphCheckpointStore(root, () => new Date("2026-08-04T10:00:00.000Z"), 5_000, (event) => {
+      if (event !== "state-rename-dir") return;
+      const acquired = JSON.parse(readFileSync(lockPath, "utf8")) as Record<string, unknown>;
+      replacement = replaceOwner(acquired);
+      writeFileSync(lockPath, JSON.stringify(replacement));
+    });
+    await store.save({
+      revision: 0, graphId: "runner-graph", graphVersion: 1, topologyHash: "a".repeat(64),
+      loopId: "runner-loop", runId: "release-fence-run", workItemId: "item-1",
+      runContractHash: "b".repeat(64), inputSnapshotHash: "c".repeat(64), phase: "after-node",
+      status: "running", readyNodeIds: ["start"], step: 0, accumulatedCost: 0,
+      artifacts: {}, state: {}, nodeAttempts: {}, edgeTraversals: {}, triggeredIncomingEdges: {},
+      startedAt: "2026-08-04T10:00:00.000Z", updatedAt: "2026-08-04T10:00:00.000Z",
+    });
+    expect(JSON.parse(await readFile(lockPath, "utf8"))).toEqual(replacement);
   });
 
   it("fsyncs graph state and every lock directory transition in durability order", async () => {
