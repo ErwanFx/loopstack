@@ -238,15 +238,16 @@ export function compilePromptGraph(input: unknown): CompiledPromptGraph {
     });
   }
 
-  for (const component of stronglyConnectedComponents([...nodes.keys()], outgoing)) {
+  const unboundedEdges = validEdges.filter((edge) => edge.maxTraversals === undefined);
+  const unboundedOutgoing = makeEdgeMap(nodes.keys(), unboundedEdges, "outgoing");
+  for (const component of stronglyConnectedComponents([...nodes.keys()], unboundedOutgoing)) {
     const members = new Set(component);
     const selfLoop = component.length === 1
-      && (outgoing.get(component[0]) ?? []).some((edge) => edge.to === component[0]);
+      && (unboundedOutgoing.get(component[0]) ?? []).some((edge) => edge.to === component[0]);
     if (component.length === 1 && !selfLoop) continue;
-    const cycleEdges = validEdges.filter((edge) => members.has(edge.from) && members.has(edge.to));
-    if (!cycleEdges.some((edge) => edge.maxTraversals !== undefined)) issues.push({
+    if (unboundedEdges.some((edge) => members.has(edge.from) && members.has(edge.to))) issues.push({
       code: "UNBOUNDED_CYCLE",
-      message: `Cycle ${component.sort().join(" -> ")} requires a maxTraversals edge`,
+      message: `Every cycle through ${component.sort().join(" -> ")} requires a traversal cap`,
     });
   }
 
@@ -308,6 +309,13 @@ export function compilePromptGraph(input: unknown): CompiledPromptGraph {
     if (operationalAi.length > 0) issues.push({
       code: "INVALID_EXECUTION_MODE",
       message: "deterministic-with-ai-improvement permits AI only in the improvement node",
+    });
+  }
+  if (definition.budgets.maxConcurrency !== 1
+    || definition.agents.some((agent) => agent.maxConcurrency !== 1)) {
+    issues.push({
+      code: "INVALID_EXECUTION_MODE",
+      message: "The current graph runtime is sequential; all maxConcurrency values must be exactly 1",
     });
   }
 

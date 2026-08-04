@@ -66,7 +66,13 @@ export const ProcessDefinitionSchema = z.object({
   const terminalIds = new Set(process.states
     .filter((state) => state.type === "terminal")
     .map((state) => state.id));
+  const transitionSelectors = new Set<string>();
   for (const transition of process.transitions) {
+    const selector = `${transition.from}:${transition.event}:${transition.actor}`;
+    if (transitionSelectors.has(selector)) {
+      context.addIssue({ code: "custom", message: `Ambiguous transition selector: ${selector}` });
+    }
+    transitionSelectors.add(selector);
     if (!stateIds.has(transition.from) || !stateIds.has(transition.to)) {
       context.addIssue({
         code: "custom",
@@ -114,7 +120,7 @@ export const WorkItemEventSchema = z.object({
   occurredAt: z.iso.datetime(),
   idempotencyKey: z.string().min(1),
   expectedRevision: z.number().int().nonnegative(),
-});
+}).strict();
 
 export type ProcessDefinition = z.infer<typeof ProcessDefinitionSchema>;
 export type ProcessState = z.infer<typeof ProcessStateSchema>;

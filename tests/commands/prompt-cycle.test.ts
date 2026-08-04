@@ -34,6 +34,7 @@ export async function createPromptCycleRun(context) {
     dependencies: {
       store: {
         async loadCheckpoint() { return null; },
+        async loadResult() { return null; },
         async saveCheckpoint() {},
         async appendResult() {}
       },
@@ -41,6 +42,7 @@ export async function createPromptCycleRun(context) {
         async invoke(request) {
           return {
             requestId: request.requestId,
+            role: request.role,
             resultId: request.requestId + ":result",
             outputArtifactRefs: [],
             actionAttempts: [],

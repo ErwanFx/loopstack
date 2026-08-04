@@ -155,6 +155,25 @@ describe("prompt graph compiler", () => {
     expect(issueCodes(() => compilePromptGraph({ ...baseGraph, edges }))).toContain("UNBOUNDED_CYCLE");
   });
 
+  it("rejects every unbounded subcycle inside a complex strongly connected component", () => {
+    const edges = [
+      ...baseGraph.edges,
+      { from: "write", to: "research", type: "control" as const, dependencyReason: "restart research" },
+    ];
+    expect(issueCodes(() => compilePromptGraph({ ...baseGraph, edges }))).toContain("UNBOUNDED_CYCLE");
+  });
+
+  it("fails closed on declared concurrency above the implemented sequential runtime", () => {
+    expect(issueCodes(() => compilePromptGraph({
+      ...baseGraph,
+      budgets: { ...baseGraph.budgets, maxConcurrency: 2 },
+    }))).toContain("INVALID_EXECUTION_MODE");
+    expect(issueCodes(() => compilePromptGraph({
+      ...baseGraph,
+      agents: baseGraph.agents.map((agent) => ({ ...agent, maxConcurrency: 2 })),
+    }))).toContain("INVALID_EXECUTION_MODE");
+  });
+
   it("requires idempotency and a resource lock for consequential effects", () => {
     const publish = {
       id: "publish",
