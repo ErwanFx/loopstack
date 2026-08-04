@@ -52,10 +52,11 @@ For Convex/Airtable, include the shared logical entities separated by `loopId`:
 - `loops`, `loopVersions`;
 - `runs`, `events`, `observations`, `decisions`, `actions`, `actionResults`;
 - `approvals`, `evaluations`, `alerts`, `learnings`, `costs`, `heartbeats`, `toolConnections`.
+- `workItems`, `stateTransitions`, `externalSubmissions`, `deadlines`, `learningProposals` for durable business cases and governed improvement.
 
-Keep `events` and `decisions` append-only. Add domain projections only when they improve common queries without duplicating another system of truth.
+Keep `events`, `decisions`, `stateTransitions`, and `externalSubmissions` append-only. `workItems` hold current state and optimistic revision; their transition history remains separate and immutable. Store business documents in their source system: the loop store keeps only references, hashes, statuses, deadlines, evidence ids, and approval metadata. Add domain projections only when they improve common queries without duplicating another system of truth.
 
-Every run-scoped record should carry `loopId`, `runId`, timestamp and idempotency evidence where applicable.
+Every run-scoped record should carry `loopId`, `runId`, timestamp and idempotency evidence where applicable. Every durable-case record carries `loopId` and `workItemId`, so Convex and Airtable use shared tables partitioned by `loopId` rather than one table per loop. Google Sheets retains one workbook per loop with the same entity worksheets.
 
 ## Workflow
 
