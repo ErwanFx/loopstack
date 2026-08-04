@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "check": "tsc -p tsconfig.json && tsx scripts/check-schemas.ts && vitest run",
+    "check": "tsc -p tsconfig.json && tsx scripts/check-schemas.ts && tsx scripts/check-skills.ts && vitest run",
     "loopstack": "tsx src/cli.ts",
     "schema:export": "tsx scripts/export-schemas.ts"
   },

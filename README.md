@@ -111,4 +111,4 @@ npm install
 npm run check
 ```
 
-The repository validates public registration, v1 routes, executable alias resolution, strict v2 dual-write records, scope-bound gate evidence, route-only auto-transitions, domain schemas, storage operations, QA, and runtime behavior.
+The release quality gate validates TypeScript, synchronized schemas, the exact seven-skill public surface, Codex-compatible frontmatter, public registration, v1 routes, executable alias resolution, strict v2 dual-write records, scope-bound gate evidence, route-only auto-transitions, storage operations, QA, and runtime behavior. GitHub Actions also rebuilds the CLI and compiles the Hermes adapter on every push and pull request.

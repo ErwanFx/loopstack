@@ -13,6 +13,21 @@ const publicSkills = [
 ];
 
 describe("plugin manifests", () => {
+  it("enforces skill portability and release checks in CI", () => {
+    const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
+    expect(packageJson.scripts.check).toContain("tsx scripts/check-skills.ts");
+
+    const checker = readFileSync("scripts/check-skills.ts", "utf8");
+    for (const skill of publicSkills) expect(checker).toContain(`"${skill}"`);
+    expect(checker).toContain('["description", "name"]');
+
+    const workflow = readFileSync(".github/workflows/ci.yml", "utf8");
+    expect(workflow).toContain("pnpm install --frozen-lockfile");
+    expect(workflow).toContain("pnpm check");
+    expect(workflow).toContain("pnpm build");
+    expect(workflow).toContain("python3 -m py_compile __init__.py");
+  });
+
   it("matches the repository and exposes only consolidated top-level skills", () => {
     const manifest = JSON.parse(readFileSync(".codex-plugin/plugin.json", "utf8"));
     expect(manifest.name).toBe("loopstack");
