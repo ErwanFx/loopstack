@@ -122,7 +122,7 @@ Transitions between completed, authorized, non-blocked phases are automatic. The
 
 ## Why the surface is small
 
-Loopstack 0.4.0 keeps specialist procedures as progressively loaded references instead of exposing every internal concern as a user-facing skill. This follows the workflow structure popularized by [Superpowers](https://github.com/obra/superpowers): compact routing skills, exact terminal states, continuous execution, persistent evidence, and hard gates.
+Loopstack 0.4.1 keeps specialist procedures as progressively loaded references instead of exposing every internal concern as a user-facing skill. This follows the workflow structure popularized by [Superpowers](https://github.com/obra/superpowers): compact routing skills, exact terminal states, continuous execution, persistent evidence, and hard gates.
 
 ## Internal protocols
 

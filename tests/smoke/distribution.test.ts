@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 
-const version = "0.4.0";
+const version = "0.4.1";
 
 describe("public plugin distribution", () => {
   it("publishes root-source marketplaces for Codex and Claude Code", () => {

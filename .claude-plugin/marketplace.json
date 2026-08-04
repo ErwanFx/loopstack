@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "Build and operate measurable AI loops across agent runtimes.",
-    "version": "0.4.0"
+    "version": "0.4.1"
   },
   "plugins": [
     {
       "name": "loopstack",
       "source": "./",
       "description": "Discover, design, plan, build, launch, and operate measurable AI loops.",
-      "version": "0.4.0",
+      "version": "0.4.1",
       "author": {
         "name": "ErwanFx"
       },
