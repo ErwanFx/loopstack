@@ -13,7 +13,7 @@ codex plugin marketplace add ErwanFx/loopstack
 codex plugin add loopstack@loopstack
 ```
 
-Start in Codex by invoking `$using-loopstack` and describing the business process. To refresh the marketplace and install the current release:
+Start in Codex by invoking `$loopstack:using-loopstack` and describing the business process. To refresh the marketplace and install the current release:
 
 ```bash
 codex plugin marketplace upgrade loopstack
@@ -28,7 +28,7 @@ claude plugin marketplace add ErwanFx/loopstack
 claude plugin install loopstack@loopstack
 ```
 
-Start with `/using-loopstack`. Update the installed plugin with:
+Start with `/loopstack:using-loopstack`. Update the installed plugin with:
 
 ```bash
 claude plugin update loopstack@loopstack

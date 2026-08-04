@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { parse } from "yaml";
 import { describe, expect, it } from "vitest";
 
@@ -17,6 +17,14 @@ function frontmatter(path: string) {
   const match = source.match(/^---\n([\s\S]*?)\n---\n/);
   if (!match) throw new Error(`${path} has no frontmatter`);
   return parse(match[1]) as Record<string, unknown>;
+}
+
+function resourceFiles(root: string): string[] {
+  return readdirSync(root, { withFileTypes: true }).flatMap((entry) => {
+    const path = `${root}/${entry.name}`;
+    if (entry.isDirectory()) return resourceFiles(path);
+    return /\.(?:md|html)$/.test(entry.name) ? [path] : [];
+  });
 }
 
 describe("portable Loopstack skills", () => {
@@ -51,5 +59,17 @@ describe("portable Loopstack skills", () => {
     expect(combined).not.toContain("Hermes native learning is mandatory in every AI Loop design");
     expect(combined).toContain("references/runtime-learning.md");
     expect(combined).toContain("self-contained HTML/SVG fallback");
+  });
+
+  it("keeps every packaged design resource free of universal Hermes requirements", () => {
+    const content = resourceFiles("skills/loop-design/references")
+      .map((file) => readFileSync(file, "utf8"))
+      .join("\n");
+    for (const prohibited of [
+      "Hermes native Learn layer (all domains)",
+      "Hermes native learning — obligatoire",
+      "Hermes native learning is mandatory in Learn for every domain",
+      "HTML blueprint mandatory; generated with architecture-diagram skill",
+    ]) expect(content).not.toContain(prohibited);
   });
 });

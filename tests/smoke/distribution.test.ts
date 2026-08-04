@@ -43,7 +43,9 @@ describe("public plugin distribution", () => {
       "claude plugin update loopstack@loopstack",
       "hermes plugins install ErwanFx/loopstack --enable",
       "hermes plugins update loopstack",
-      "loopstack:using-loopstack",
+      "`$loopstack:using-loopstack`",
+      "`/loopstack:using-loopstack`",
+      "`loopstack:using-loopstack`",
     ]) expect(readme).toContain(command);
     expect(readme).toMatch(/Node\.js.*pnpm/is);
     expect(readme).toMatch(/architecture-diagram.*optional/is);

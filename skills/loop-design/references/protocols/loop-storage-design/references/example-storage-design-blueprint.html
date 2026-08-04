@@ -30,7 +30,7 @@
 <g><rect x="30" y="55" width="160" height="90" rx="8" fill="#0f172a"/><rect x="30" y="55" width="160" height="90" rx="8" fill="rgba(30,41,59,.5)" stroke="#22d3ee" stroke-width="2"/><text x="48" y="82" fill="#22d3ee" font-size="12" font-weight="700">OpenSEO / GSC</text><text x="48" y="104" fill="#94a3b8" font-size="9">SoT search</text><text x="48" y="121" fill="#94a3b8" font-size="8">clics · impressions · CTR · positions</text></g>
 <g><rect x="30" y="175" width="160" height="90" rx="8" fill="#0f172a"/><rect x="30" y="175" width="160" height="90" rx="8" fill="rgba(30,41,59,.5)" stroke="#22d3ee" stroke-width="2"/><text x="48" y="202" fill="#22d3ee" font-size="12" font-weight="700">Velora</text><text x="48" y="224" fill="#94a3b8" font-size="9">SoT business / leads</text><text x="48" y="241" fill="#94a3b8" font-size="8">lecture agrégée organique uniquement</text></g>
 <!-- loop runtime -->
-<g><rect x="335" y="125" width="200" height="120" rx="8" fill="#0f172a"/><rect x="335" y="125" width="200" height="120" rx="8" fill="rgba(6,78,59,.35)" stroke="#34d399" stroke-width="2"/><text x="355" y="153" fill="#34d399" font-size="12" font-weight="700">Hermes SEO Loop</text><text x="355" y="176" fill="#e2e8f0" font-size="9">Observe → Evaluate → Act</text><text x="355" y="196" fill="#94a3b8" font-size="8">écrit traces, décisions, résultats</text><text x="355" y="215" fill="#94a3b8" font-size="8">idempotencyKey sur chaque run/action</text></g>
+<g><rect x="335" y="125" width="200" height="120" rx="8" fill="#0f172a"/><rect x="335" y="125" width="200" height="120" rx="8" fill="rgba(6,78,59,.35)" stroke="#34d399" stroke-width="2"/><text x="355" y="153" fill="#34d399" font-size="12" font-weight="700">Agent SEO Loop</text><text x="355" y="176" fill="#e2e8f0" font-size="9">Observe → Evaluate → Act</text><text x="355" y="196" fill="#94a3b8" font-size="8">écrit traces, décisions, résultats</text><text x="355" y="215" fill="#94a3b8" font-size="8">idempotencyKey sur chaque run/action</text></g>
 <!-- convex boundary -->
 <rect x="620" y="35" width="270" height="500" rx="14" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="8 5"/><text x="640" y="60" fill="#fbbf24" font-size="11" font-weight="700">CONVEX — PROJET SEO INDÉPENDANT</text><text x="640" y="77" fill="#94a3b8" font-size="8">pas Velora · isolation loopId · 18 entités</text>
 <!-- db groups -->
@@ -39,7 +39,7 @@
 <g><rect x="640" y="390" width="225" height="115" rx="8" fill="#0f172a"/><rect x="640" y="390" width="225" height="115" rx="8" fill="rgba(136,19,55,.25)" stroke="#fb7185" stroke-width="2"/><text x="656" y="415" fill="#fb7185" font-size="11" font-weight="700">Garde-fous</text><text x="656" y="440" fill="#e2e8f0" font-size="8">append-only: events · decisions · gates</text><text x="656" y="458" fill="#e2e8f0" font-size="8">aucune mutation destructive</text><text x="656" y="476" fill="#e2e8f0" font-size="8">pas PII CRM · secrets · raw GSC · articles</text><text x="656" y="494" fill="#e2e8f0" font-size="8">rétention 12 / 24 / 36 mois</text></g>
 <!-- outputs -->
 <g><rect x="920" y="305" width="160" height="90" rx="8" fill="#0f172a"/><rect x="920" y="305" width="160" height="90" rx="8" fill="rgba(120,53,15,.3)" stroke="#fbbf24" stroke-width="2"/><text x="938" y="332" fill="#fbbf24" font-size="11" font-weight="700">Monitor / Report</text><text x="938" y="355" fill="#94a3b8" font-size="8">Slack hebdo</text><text x="938" y="373" fill="#94a3b8" font-size="8">audit 7 / 30 / 90 jours</text></g>
-<g><rect x="920" y="415" width="160" height="95" rx="8" fill="#0f172a"/><rect x="920" y="415" width="160" height="95" rx="8" fill="rgba(6,78,59,.35)" stroke="#34d399" stroke-width="2"/><text x="938" y="442" fill="#34d399" font-size="11" font-weight="700">Hermes Learn</text><text x="938" y="465" fill="#e2e8f0" font-size="8">skill_manage → procédures</text><text x="938" y="482" fill="#e2e8f0" font-size="8">memory → contexte durable</text><text x="938" y="499" fill="#94a3b8" font-size="8">pattern prouvé / correction explicite</text></g>
+<g><rect x="920" y="415" width="160" height="95" rx="8" fill="#0f172a"/><rect x="920" y="415" width="160" height="95" rx="8" fill="rgba(6,78,59,.35)" stroke="#34d399" stroke-width="2"/><text x="938" y="442" fill="#34d399" font-size="11" font-weight="700">Runtime Learn</text><text x="938" y="465" fill="#e2e8f0" font-size="8">patch versionné → procédures</text><text x="938" y="482" fill="#e2e8f0" font-size="8">faits durables si disponible</text><text x="938" y="499" fill="#94a3b8" font-size="8">pattern prouvé / correction explicite</text></g>
 <!-- lifecycle strip -->
 <rect x="35" y="555" width="1035" height="65" rx="9" fill="#0f172a" stroke="#334155"/>
 <text x="55" y="579" fill="#22d3ee" font-size="10" font-weight="700">DESIGN</text><text x="55" y="598" fill="#34d399" font-size="8">✓ actuel · lecture fichiers</text>
@@ -58,7 +58,7 @@
 <tr><td>Identité</td><td><code>loops, loopVersions</code></td><td>Versionner le contrat du loop</td></tr>
 <tr><td>Exécution</td><td><code>runs, events, observations, decisions, actions, actionResults</code></td><td>Reconstruire exactement chaque run</td></tr>
 <tr><td>Gouvernance</td><td><code>approvals, evaluations, alerts, costs, heartbeats, toolConnections</code></td><td>Gates, qualité, santé, coût et connexions</td></tr>
-<tr><td>Apprentissage</td><td><code>learnings</code></td><td>Patterns prouvés avant skill_manage / memory</td></tr>
+<tr><td>Apprentissage</td><td><code>learnings</code></td><td>Patterns prouvés avant patch versionné / fait durable</td></tr>
 <tr><td>SEO</td><td><code>contentItems, weeklySnapshots, gateEvents</code></td><td>Pipeline article, mesure hebdo, feedback Erwan</td></tr></table></div>
 
 <div class="section"><h2>3. Sécurité, rétention et permissions</h2><div class="grid">
@@ -68,6 +68,6 @@
 </div></div>
 
 <div class="section"><h2>4. Gate de validation</h2><table><tr><th>À valider</th><th>Proposition</th></tr>
-<tr><td>Provider</td><td>Convex</td></tr><tr><td>Isolation</td><td>Projet SEO indépendant de Velora</td></tr><tr><td>Modèle</td><td>15 tables canonique + 3 projections SEO</td></tr><tr><td>Learn</td><td>Loop store → pattern → skill_manage / memory</td></tr><tr><td>Étape suivante</td><td><code>loop-connection-check</code> en lecture seule uniquement après APPROVE storage design</td></tr></table></div>
+<tr><td>Provider</td><td>Convex</td></tr><tr><td>Isolation</td><td>Projet SEO indépendant de Velora</td></tr><tr><td>Modèle</td><td>15 tables canonique + 3 projections SEO</td></tr><tr><td>Learn</td><td>Loop store → pattern → adaptateur Learn du runtime</td></tr><tr><td>Étape suivante</td><td><code>loop-connection-check</code> en lecture seule uniquement après APPROVE storage design</td></tr></table></div>
 <p class="foot">Artifacts: storage.yaml · storage-blueprint.json · storage-design-blueprint.html · aucune connexion/provision/écriture effectuée</p>
 </div></body></html>
