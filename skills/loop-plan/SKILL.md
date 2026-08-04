@@ -1,13 +1,6 @@
 ---
 name: loop-plan
 description: Use when an approved Loopstack design is ready for an exact, versioned implementation plan and authorization boundary.
-version: 0.2.0
-author: ErwanFx
-license: MIT
-metadata:
-  hermes:
-    tags: [ai-loops, planning, tdd, approvals]
-    related_skills: [loop-design, loop-build]
 ---
 
 # Plan a Loop

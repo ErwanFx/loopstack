@@ -1,13 +1,6 @@
 ---
 name: loop-build
 description: Use when an exact Loopstack implementation plan is approved and must be provisioned, built, and validated continuously.
-version: 0.2.0
-author: ErwanFx
-license: MIT
-metadata:
-  hermes:
-    tags: [ai-loops, implementation, storage, qa, tdd]
-    related_skills: [loop-plan, loop-launch]
 ---
 
 # Build and Validate a Loop

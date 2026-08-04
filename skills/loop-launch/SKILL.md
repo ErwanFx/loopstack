@@ -1,13 +1,6 @@
 ---
 name: loop-launch
 description: Use when a built AI Loop has passing QA and needs an approval-gated shadow, canary, or active rollout.
-version: 0.2.0
-author: ErwanFx
-license: MIT
-metadata:
-  hermes:
-    tags: [ai-loops, deployment, shadow, canary, rollback]
-    related_skills: [loop-build, loop-operate]
 ---
 
 # Launch a Loop

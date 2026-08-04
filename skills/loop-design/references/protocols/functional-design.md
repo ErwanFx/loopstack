@@ -11,7 +11,7 @@ Turn a qualified AI Loop into a **reviewable blueprint** the owner can approve o
 
 Two deliverable layers:
 
-1. **Visual blueprint (mandatory, primary for human validation)** — one self-contained HTML file built with the Hermes skill **`architecture-diagram`** (dark SVG + structured sections).
+1. **Visual blueprint (mandatory, primary for human validation)** — one self-contained HTML file built with an available runtime-native diagram capability, or a self-contained HTML/SVG fallback.
 2. **Declarative package (mandatory, machine handoff)** — `loop.yaml` + supporting YAML under the loop workspace.
 
 **Do not activate** crons, external writes, or deployable config in this skill.
@@ -45,14 +45,14 @@ When `loop-eric-review` returns `verdict: revise` and routes back here:
    5. **Learn** — state, traces, score history, reusable patterns
    6. **Decide** — continue, stop, change strategy, or escalate
 3. **Show gates, stop, escalate, and traces explicitly** on the diagram and in prose — not only happy path.
-4. **Generate the HTML with skill `architecture-diagram`.** Load it via `skill_view(name='architecture-diagram')` and follow its dark theme / SVG conventions. Reference example: [example-ai-loop-blueprint.html](references/example-ai-loop-blueprint.html).
+4. **Generate the HTML with an available diagram capability.** On Hermes, prefer `architecture-diagram` when installed. On other runtimes, use an equivalent installed skill or the self-contained HTML/SVG fallback described in [runtime learning adapters](../runtime-learning.md). Reference example: [example-ai-loop-blueprint.html](references/example-ai-loop-blueprint.html).
 5. **Still emit the YAML package** for later skills (`loop-storage-design`, plan, implement). YAML alone is insufficient for owner approval.
 6. **No activation.** Triggers may be specified with `enabled: false`. Record activation blockers as checklist only — they do **not** block producing or approving a design draft.
 7. **Domain-agnostic.** SEO is only an example in references; any process uses the same six-box cycle.
 8. **Answer in the user’s language.** Keep artifact filenames stable English/kebab-case.
-9. **Hermes native learning is mandatory in every AI Loop design, regardless of domain.** Model it as a platform capability in the **Learn** stage — not as a fictional hub skill. Every design must specify:
+9. **A runtime-selected Learn adapter is mandatory in every AI Loop design, regardless of domain.** Follow [runtime learning adapters](../runtime-learning.md) and model Learn as a platform capability, not as a fictional hub skill. Every design must specify:
    - operational evidence stored in the loop store (state, traces, scores, gate events);
-   - `skill_manage` for reusable procedures and recurring/explicit corrections;
+   - the selected runtime's versioned mechanism for reusable procedures and recurring/explicit corrections;
    - persistent memory only for durable facts, preferences, constraints, and environment conventions;
    - safeguards: never put run logs, transient metrics, task progress, secrets, or raw data dumps in memory;
    - an anti-noise threshold (recurring pattern, measured evidence, or explicit owner correction) before changing a skill.
@@ -75,7 +75,7 @@ Fill each box with **concrete** content for *this* loop (not generic verbs only)
 | **Observe** | Every system/signal read each run or each cadence + current access status |
 | **Evaluate** | Gap formula, rubrics/checklists, who judges (agent / human / deterministic) |
 | **Act** | Allowed actions, forbidden actions, unit of work, cadence, handoff to human gates |
-| **Learn** | What is written where (state tables, gate events, snapshots), how patterns become skill/process patches through **Hermes native learning** (`skill_manage` + durable memory), and what anti-noise threshold applies |
+| **Learn** | What is written where (state tables, gate events, snapshots), how patterns become versioned skill/process/instruction patches through the selected runtime adapter, and what anti-noise threshold applies |
 | **Decide** | Continue / stop / change strategy / escalate — with triggers for each |
 
 Also define:
@@ -83,12 +83,12 @@ Also define:
 - human gates (when, artifact, timeout, fallback);
 - run success vs business success;
 - budget, idempotency, retries, rollback;
-- runtime (Hermes primary) and storage *intent* only;
+- selected runtime (Hermes, Claude Code, or Codex) and storage *intent* only;
 - tools + least privilege.
 
 ### 3. Produce the HTML blueprint (mandatory)
 
-1. `skill_view(name='architecture-diagram')` (and template if needed).
+1. Detect an installed diagram/visualization capability. On Hermes, load `architecture-diagram` if present; otherwise use the runtime's normal file/code tools.
 2. Write a **single self-contained `.html`** file, e.g.:
 
 ```text
@@ -99,8 +99,8 @@ Also define:
    - header: loop id, name, draft/not activated;
    - **SVG diagram** of the six stages as a closed loop (arrows), plus human-gates strip and loop-store/memory if any;
    - sections **1–6** matching Target → … → Decide with real content for this loop;
-   - the **Learn** section must visibly show the mandatory Hermes native learning layer: loop-store evidence → `skill_manage` procedure update and/or durable memory update → later evaluation; include memory exclusions and anti-noise rule;
-   - a **Skills runtime** section (mandatory): always-on vs on-demand skills used *inside* operating runs — **not** loopstack lifecycle skills (`loop-idea`, `loop-design`, …). Include a phase→skills matrix (research / draft / GEO / QA / integrate / measure). Prefer carrying forward any skill map drafted in `loop-idea` discovery; list `hermes_native_learning` separately as a native capability, not a hub skill;
+   - the **Learn** section must visibly show the selected runtime adapter: loop-store evidence → versioned procedure/instruction update and/or durable-fact update → later evaluation; include memory exclusions and anti-noise rule;
+   - a **Skills runtime** section (mandatory): always-on vs on-demand skills used *inside* operating runs — **not** loopstack lifecycle skills (`loop-idea`, `loop-design`, …). Include a phase→skills matrix (research / draft / GEO / QA / integrate / measure). Prefer carrying forward any skill map drafted in discovery; list the selected learning adapter separately as a native capability, not a hub skill;
    - a “week type” or “run type” table (concrete timeline);
    - activation checklist (if readiness blocked) clearly labelled *does not block design approval*.
 
@@ -117,7 +117,7 @@ Under `{workspace}/loops/{loop_id}/design/`:
 | `ai-loop-blueprint.html` | **Owner validation artifact** |
 | `loop.yaml` | id, name, version, status=`designing`, target, current, triggers, feedback, approval |
 | `process.yaml` | six-box cycle detail + rhythms + states |
-| `skills.yaml` | **Runtime** skills only: always_on, on_demand, phase matrix, minimum viable pack; plus mandatory `native_capabilities.hermes_native_learning` (not a hub skill and not loopstack lifecycle) |
+| `skills.yaml` | **Runtime** skills only: always_on, on_demand, phase matrix, minimum viable pack; plus mandatory `native_capabilities.learning` with runtime, adapter, and versioned update mechanism |
 | `tools.yaml` | tools, modes, connection status |
 | `storage.yaml` | provider intent only (no provision) |
 | `approvals.yaml` | gates, timeouts, progressive autonomy |
@@ -200,17 +200,17 @@ handoff:
 7. **Mixing lagging business metrics with weekly vanity** without labelling.
 8. **Copy-pasting example SEO HTML** for a non-SEO domain.
 9. **Treating activation readiness blockers as “cannot design.”**
-10. **Building HTML without loading `architecture-diagram`** (wrong visual system / one-off styles that drift).
+10. **Building HTML without checking available diagram capabilities** or documenting the fallback used.
 11. **Omitting the Skills runtime section** or listing only `loop-*` lifecycle skills instead of operating skills (copy, GEO, research, domain playbook).
 12. **Inventing skill names** not installed / not planned — map must match hub installs or explicit “to install”.
-13. **Treating Learn as traces only** — every design must connect evidence to Hermes native `skill_manage` and durable memory, with anti-noise and memory-exclusion rules.
-14. **Calling Hermes native learning a hub skill** — it is a platform capability; do not add a fake `learn` dependency or install request.
+13. **Treating Learn as traces only** — every design must connect evidence to the selected runtime's versioned improvement mechanism, with anti-noise and memory-exclusion rules.
+14. **Inventing a universal `learn` skill or unavailable runtime API** — map the common contract to real capabilities instead.
 
 ## Verification checklist
 
 - [ ] Six stages Target→Observe→Evaluate→Act→Learn→Decide fully specified
-- [ ] Learn includes mandatory Hermes native learning: loop-store evidence + `skill_manage` + durable memory + anti-noise + exclusions
-- [ ] HTML blueprint generated via **`architecture-diagram`** conventions
+- [ ] Learn includes operational evidence + versioned reusable procedures + durable facts + anti-noise + exclusions
+- [ ] HTML blueprint generated with an installed diagram capability or documented self-contained HTML/SVG fallback
 - [ ] SVG shows closed loop + gates + memory/store
 - [ ] HTML sections mirror the six stages with concrete content
 - [ ] HTML includes **Skills runtime** (always-on / on-demand / phase matrix); `skills.yaml` matches
@@ -224,4 +224,5 @@ handoff:
 ## References
 
 - [example-ai-loop-blueprint.html](references/example-ai-loop-blueprint.html) — real ECOI SEO design output (quality bar + structure)
-- Hermes skill **`architecture-diagram`** — required generator for the HTML/SVG blueprint
+- [runtime learning adapters](../runtime-learning.md) — common Learn contract and Hermes, Claude Code, and Codex mappings
+- Hermes skill **`architecture-diagram`** — preferred diagram generator when installed

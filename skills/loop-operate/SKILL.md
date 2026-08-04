@@ -1,13 +1,6 @@
 ---
 name: loop-operate
 description: Use when a Loopstack loop must be inspected, monitored, debugged, modified, or improved from measured evidence.
-version: 0.2.0
-author: ErwanFx
-license: MIT
-metadata:
-  hermes:
-    tags: [ai-loops, operations, monitoring, debugging, improvement]
-    related_skills: [loop-launch, loop-plan]
 ---
 
 # Operate a Loop

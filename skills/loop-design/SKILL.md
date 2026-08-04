@@ -1,13 +1,6 @@
 ---
 name: loop-design
 description: Use when a qualified AI Loop needs functional and storage blueprints, connection checks, and critical review before planning.
-version: 0.2.0
-author: ErwanFx
-license: MIT
-metadata:
-  hermes:
-    tags: [ai-loops, design, storage, review, approvals]
-    related_skills: [loop-discover, loop-plan]
 ---
 
 # Design a Loop
@@ -25,6 +18,7 @@ Load progressively:
 - `references/protocols/loop-connection-check/SKILL.md`
 - `references/protocols/loop-eric-review/SKILL.md`
 - `references/protocols/loop-eric-review/references/eric-siu-checklist.md`
+- `references/runtime-learning.md`
 
 ## Hard gate
 
@@ -54,7 +48,9 @@ Use exactly:
 Target → Observe → Evaluate → Act → Learn → Decide
 ```
 
-Show sources of truth, target/current/gap, triggers, actions, human gates, runtime skills, feedback horizons, limits, rollout, and Hermes native Learn.
+Show sources of truth, target/current/gap, triggers, actions, human gates, runtime skills, feedback horizons, limits, rollout, and the runtime-selected Learn adapter.
+
+Use the runtime capability map in `references/runtime-learning.md`. Prefer the runtime's native diagram skill when available; otherwise produce a self-contained HTML/SVG fallback with its normal file-generation tools.
 
 Present the HTML blueprint and stop for explicit approval. Changes stay within this workflow.
 

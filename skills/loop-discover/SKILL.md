@@ -1,13 +1,6 @@
 ---
 name: loop-discover
 description: Use when a new or materially changed process must be evidenced, classified, and checked for AI Loop readiness.
-version: 0.2.0
-author: ErwanFx
-license: MIT
-metadata:
-  hermes:
-    tags: [ai-loops, discovery, qualification, readiness]
-    related_skills: [using-loopstack, loop-design]
 ---
 
 # Discover a Loop

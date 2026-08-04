@@ -1,13 +1,6 @@
 ---
 name: using-loopstack
 description: Use when starting, resuming, building, launching, or operating an AI Loop through Loopstack's consolidated workflows.
-version: 0.2.0
-author: ErwanFx
-license: MIT
-metadata:
-  hermes:
-    tags: [ai-loops, orchestration, routing, approvals]
-    related_skills: [loop-discover, loop-design, loop-plan, loop-build, loop-launch, loop-operate]
 ---
 
 # Using Loopstack
