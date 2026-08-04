@@ -17,6 +17,8 @@ Load progressively:
 - `references/protocols/loop-implement/SKILL.md`
 - `references/protocols/loop-qa/SKILL.md`
 
+When the design uses agentic execution, also load `references/prompt-cycle-module.md` before implementing the runtime entrypoint.
+
 ## Hard gate
 
 Before any mutation, call `assertGateAuthorization()` with an external trust context (trusted evidence hash, independently trusted artifact hash, and trusted approver) against the current v2 scope and require:
@@ -60,6 +62,10 @@ For each task:
 After compaction, trust the ledger, plan hash, manifests, and git history; never replay a completed mutation.
 
 Build and prove the work-item state machine separately from the prompt-cycle controller. The runtime path must perform actual repeated maker/checker invocations from persisted `AgentRunRequest` snapshots; a cron or workflow definition alone is incomplete. Test bounded continuation, wait termination, controller resume, revision conflicts, idempotency, no-progress, cost/deadline limits, and unknown-side-effect reconciliation.
+
+Create `{loop-directory}/prompt-cycle.mjs` with the exact `createPromptCycleRun(context)` contract from `references/prompt-cycle-module.md`. Run `loopstack prompt-cycle run --loop {loop-directory}` in QA and record the outcome. A generated runtime manifest is not executable proof.
+
+After rendering each runtime package, run `loopstack runtime validate --runtime {runtime} --package {package-directory}`. Rendering and validation must both pass before activation planning can proceed.
 
 When the approved design contains `graph.yaml`, first run `loopstack graph validate path/to/graph.yaml` and record `loopstack graph inspect` plus the topology hash. Implement typed nodes and edges through the durable runner. Graph QA must cover conditional routing, `all`/`any` fan-in, bounded cycles, fresh reviewer context, checkpoint/resume, resource locks, budgets, and runtime equivalence. Hermès remains sequential per profile (`maxConcurrency: 1`); Claude Code dynamic workflows are optional and both Claude Code and Codex keep a sequential fallback.
 

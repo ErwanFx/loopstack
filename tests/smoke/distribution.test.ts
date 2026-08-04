@@ -23,12 +23,25 @@ describe("public plugin distribution", () => {
   });
 
   it("keeps every release manifest on the same version", () => {
-    expect(JSON.parse(readFileSync(".codex-plugin/plugin.json", "utf8")).version).toBe(version);
+    const codexManifest = JSON.parse(readFileSync(".codex-plugin/plugin.json", "utf8"));
+    expect(codexManifest.version).toBe(version);
+    expect(codexManifest.interface.defaultPrompt).toBeInstanceOf(Array);
     expect(JSON.parse(readFileSync(".claude-plugin/plugin.json", "utf8")).version).toBe(version);
     expect(JSON.parse(readFileSync(".claude-plugin/marketplace.json", "utf8")).metadata.version).toBe(version);
     expect(JSON.parse(readFileSync(".claude-plugin/marketplace.json", "utf8")).plugins[0].version).toBe(version);
     expect(parse(readFileSync("plugin.yaml", "utf8")).version).toBe(version);
     expect(JSON.parse(readFileSync("package.json", "utf8")).version).toBe(version);
+  });
+
+  it("declares the complete installable CLI payload explicitly", () => {
+    const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
+    expect(packageJson.files).toEqual([
+      "dist",
+      "templates/business-loops",
+      "README.md",
+      "LICENSE",
+    ]);
+    expect(packageJson.engines).toEqual({ node: ">=20" });
   });
 
   it("ships an MIT license and exact multi-runtime operating instructions", () => {

@@ -1,6 +1,6 @@
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { runRuntimeRenderCommand } from "../../src/commands/runtime-render.js";
 import { portableGraph } from "../fixtures/prompt-graph.js";
@@ -25,7 +25,9 @@ describe("runtime graph command", () => {
     log.mockRestore();
     expect(code).toBe(0);
     expect(existsSync(join(outputPath, "graph.json"))).toBe(true);
-    expect(JSON.parse(readFileSync(join(outputPath, "runtime.json"), "utf8")).graphExecution)
-      .toMatchObject({ executionMode: "single-agent-multi-session", entrypoint: "research" });
+    const runtime = JSON.parse(readFileSync(join(outputPath, "runtime.json"), "utf8"));
+    expect(runtime.graphExecution).toMatchObject({ executionMode: "single-agent-multi-session", entrypoint: "research" });
+    expect(runtime.workDirectory).toBe(dirname(loopPath));
+    expect(runtime.promptCycle.entry.args).toEqual(["prompt-cycle", "run", "--loop", dirname(loopPath)]);
   });
 });

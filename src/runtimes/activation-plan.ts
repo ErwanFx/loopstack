@@ -1,5 +1,7 @@
 import { z } from "zod";
+import { resolve } from "node:path";
 import type { LoopDefinition } from "../domain/types.js";
+import { generatedLoopSkillName } from "./render-helpers.js";
 
 export const ArgumentCommandSchema = z.object({
   executable: z.string().min(1),
@@ -13,6 +15,7 @@ export const ActivationPlanSchema = z.object({
   enabled: z.literal(false),
   controller: ArgumentCommandSchema,
   skills: z.array(z.string().min(1)).min(1),
+  profile: z.string().regex(/^[a-z0-9][a-z0-9_-]{0,63}$/).nullable().default(null),
   deliveryTarget: z.string().min(1),
   triggers: z.array(z.object({
     id: z.string().min(1),
@@ -24,6 +27,7 @@ export const ActivationPlanSchema = z.object({
     security: z.object({
       hmacRequired: z.boolean(),
       secretEnv: z.string().min(1).nullable(),
+      secretManagement: z.enum(["none", "hermes-generated"]),
       idempotencyHeader: z.string().min(1).nullable(),
       idempotencyKey: z.string().min(1).nullable(),
     }),
@@ -32,19 +36,21 @@ export const ActivationPlanSchema = z.object({
 
 export type ActivationPlan = z.infer<typeof ActivationPlanSchema>;
 
-function webhookSecretEnv(loopId: string): string {
-  return `LOOPSTACK_${loopId.replaceAll("-", "_").toUpperCase()}_WEBHOOK_SECRET`;
-}
-
 export function createHermesActivationPlan(
   loop: LoopDefinition,
-  options: { skills?: string[]; deliveryTarget?: string } = {},
+  options: { skills?: string[]; deliveryTarget?: string; workDirectory?: string; profile?: string } = {},
 ): ActivationPlan {
+  const skills = options.skills ?? [generatedLoopSkillName(loop.id)];
+  const deliveryTarget = options.deliveryTarget ?? "log";
+  const cronDeliveryTarget = deliveryTarget === "log" ? "local" : deliveryTarget;
+  const profile = options.profile ?? null;
+  const profileArgs = profile === null ? [] : ["-p", profile];
+  const workDirectory = resolve(options.workDirectory ?? `loops/${loop.id}`);
   const controller = {
     executable: "loopstack",
-    args: ["prompt-cycle", "run", "--loop", loop.id],
+    args: ["prompt-cycle", "run", "--loop", workDirectory],
   };
-  const secretEnv = webhookSecretEnv(loop.id);
+  const controllerPrompt = `Execute loopstack prompt-cycle run --loop ${JSON.stringify(workDirectory)} exactly once. Return its JSON outcome and do not bypass approvals.`;
   const triggers = loop.triggers.flatMap<ActivationPlan["triggers"][number]>((trigger, index) => {
     if (trigger.type !== "cron" && trigger.type !== "webhook") return [];
     const id = trigger.id ?? `${trigger.type}-${index + 1}`;
@@ -60,18 +66,21 @@ export function createHermesActivationPlan(
         activation: {
           executable: "hermes",
           args: [
-            "cron", "create", "--id", id, "--schedule", schedule, "--",
-            controller.executable, ...controller.args,
+            ...profileArgs, "cron", "create", schedule, controllerPrompt,
+            "--name", id,
+            "--deliver", cronDeliveryTarget,
+            ...skills.flatMap((skill) => ["--skill", skill]),
+            "--workdir", workDirectory,
           ],
         },
         verification: [
-          { executable: "hermes", args: ["cron", "list", "--json"] },
-          { executable: "hermes", args: ["cron", "test", id] },
+          { executable: "hermes", args: [...profileArgs, "cron", "list", "--all"] },
         ],
-        removal: { executable: "hermes", args: ["cron", "remove", id] },
+        removal: { executable: "hermes", args: [...profileArgs, "cron", "remove", id] },
         security: {
           hmacRequired: false,
           secretEnv: null,
+          secretManagement: "none" as const,
           idempotencyHeader: null,
           idempotencyKey: trigger.idempotencyKey ?? null,
         },
@@ -85,22 +94,23 @@ export function createHermesActivationPlan(
       activation: {
         executable: "hermes",
         args: [
-          "webhook", "subscribe", "--id", id,
-          "--route", `/loopstack/${loop.id}`,
-          "--secret-env", secretEnv,
-          "--idempotency-header", "x-loopstack-idempotency-key",
-          "--", controller.executable, ...controller.args,
+          ...profileArgs, "webhook", "subscribe", id,
+          "--prompt", `${controllerPrompt} Treat the verified webhook payload as the run observation.`,
+          ...(trigger.event === undefined ? [] : ["--events", trigger.event]),
+          "--description", `Loopstack trigger for ${loop.name}`,
+          "--skills", skills.join(","),
+          "--deliver", deliveryTarget,
         ],
       },
       verification: [
-        { executable: "hermes", args: ["webhook", "list", "--json"] },
-        { executable: "hermes", args: ["webhook", "test", id] },
+        { executable: "hermes", args: [...profileArgs, "webhook", "list"] },
       ],
-      removal: { executable: "hermes", args: ["webhook", "remove", id] },
+      removal: { executable: "hermes", args: [...profileArgs, "webhook", "remove", id] },
       security: {
         hmacRequired: true,
-        secretEnv,
-        idempotencyHeader: "x-loopstack-idempotency-key",
+        secretEnv: null,
+        secretManagement: "hermes-generated" as const,
+        idempotencyHeader: null,
         idempotencyKey: trigger.idempotencyKey ?? null,
       },
     }];
@@ -112,8 +122,9 @@ export function createHermesActivationPlan(
     loopId: loop.id,
     enabled: false,
     controller,
-    skills: options.skills ?? [`${loop.id}-loop`],
-    deliveryTarget: options.deliveryTarget ?? "log",
+    skills,
+    profile,
+    deliveryTarget,
     triggers,
   });
 }

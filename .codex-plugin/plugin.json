@@ -13,6 +13,8 @@
     "developerName": "ErwanFx",
     "category": "Productivity",
     "capabilities": [],
-    "defaultPrompt": "Help me turn a business process into a reliable measurable AI loop."
+    "defaultPrompt": [
+      "Turn a business process into a reliable measurable AI loop."
+    ]
   }
 }

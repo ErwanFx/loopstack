@@ -87,7 +87,22 @@ Explicitly load `loopstack:using-loopstack`, then describe the process to interv
 hermes plugins update loopstack
 ```
 
-The skill-only workflows have no Node.js dependency. Node.js 20+ and pnpm are required only to use the TypeScript CLI or develop and verify this repository. Storage and business-tool connections are selected per loop; none is globally required by the plugin.
+The skill-only workflows have no Node.js dependency. Node.js 20+ is required to use the CLI; `pnpm` is only required to develop and verify this repository. Storage and business-tool connections are selected per loop; none is globally required by the plugin.
+
+Plugin installation does not install the executable CLI into the system path. Before building, testing, or launching generated loops, install it once with Node.js 20+:
+
+```bash
+npm install --global github:ErwanFx/loopstack
+loopstack --help
+```
+
+For local development, run `npm install --global .` from the repository instead. `pnpm` is needed to develop Loopstack itself, not to invoke an installed CLI.
+
+Every agentic business loop owns a `prompt-cycle.mjs` module. It binds the portable bounded controller to the selected store, runtime invoker, and evaluator. `loopstack prompt-cycle run --loop loops/<loop-id>` repeatedly creates persisted maker/checker requests until the controller reaches a declared wait, success, failure, or escalation decision. A cron or webhook only starts that command; it never replaces the controller.
+
+Generated runtime packages are inert until activation and can be checked independently with `loopstack runtime validate --runtime <hermes|claude-code|codex> --package <directory>`. Rendering also performs this validation automatically and fails closed if the written package is invalid.
+
+For a named Hermès profile, pass `--profile <name>` to both `runtime render` and `runtime preflight`. A single profile declared by every agent binding in `graph.yaml` is selected automatically; the generated activation, verification, and removal commands retain that explicit profile instead of relying on Hermès’ sticky default.
 
 The Hermes `architecture-diagram` skill is an optional visual enhancement. If it is absent—or when the runtime is Claude Code or Codex—Loopstack can generate the same approval artifact as a self-contained HTML/SVG fallback.
 

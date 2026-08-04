@@ -18,7 +18,7 @@
   "promptCycle": {
     "entry": {
       "executable": "loopstack",
-      "args": ["prompt-cycle", "run", "--loop", "seo-growth"]
+      "args": ["prompt-cycle", "run", "--loop", "loops/seo-growth"]
     },
     "requestContract": "AgentRunRequest",
     "resultContract": "AgentRunResult",

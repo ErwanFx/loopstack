@@ -43,7 +43,7 @@ When `loop-eric-review` returns `verdict: revise` and routes back here:
    `Target → Observe state → Evaluate/Plan → Act → Observe result → Evaluate outcome → Learn → Decide`
    Keep the two Observe and two Evaluate moments separate in the detailed visual, process contract, traces, and tests. A compact six-box summary may group them only in explanatory copy.
 3. **Show gates, stop, escalate, and traces explicitly** on the diagram and in prose — not only happy path.
-4. **Generate the HTML with an available diagram capability.** On Hermes, prefer `architecture-diagram` when installed. On other runtimes, use an equivalent installed skill or the self-contained HTML/SVG fallback described in [runtime learning adapters](../runtime-learning.md). Reference example: [example-ai-loop-blueprint.html](references/example-ai-loop-blueprint.html).
+4. **Generate the HTML with an available diagram capability.** On Hermes, prefer `architecture-diagram` when installed. On other runtimes, use an equivalent installed skill or the self-contained HTML/SVG fallback described in [runtime learning adapters](../runtime-learning.md). Reference example: [example-ai-loop-blueprint.html](../example-ai-loop-blueprint.html).
 5. **Still emit the YAML package** for later skills (`loop-storage-design`, plan, implement). YAML alone is insufficient for owner approval.
 6. **No activation.** Triggers may be specified with `enabled: false`. Record activation blockers as checklist only — they do **not** block producing or approving a design draft.
 7. **Domain-agnostic.** SEO is only an example in references; any process uses the same complete control cycle.
@@ -112,7 +112,7 @@ Define the executable prompt-cycle controller, not merely a scheduler. Each iter
 
 4. Deliver the file to the user for review (`MEDIA:` on Slack/Telegram when available, or path).
 
-Use [example-ai-loop-blueprint.html](references/example-ai-loop-blueprint.html) as the quality bar (structure + density + visual loop). Adapt domain content; do not ship the SEO example unchanged for unrelated loops.
+Use [example-ai-loop-blueprint.html](../example-ai-loop-blueprint.html) as the quality bar (structure + density + visual loop). Adapt domain content; do not ship the SEO example unchanged for unrelated loops.
 
 ### 4. Produce the declarative package
 
@@ -235,6 +235,6 @@ handoff:
 
 ## References
 
-- [example-ai-loop-blueprint.html](references/example-ai-loop-blueprint.html) — real ECOI SEO design output (quality bar + structure)
+- [example-ai-loop-blueprint.html](../example-ai-loop-blueprint.html) — real ECOI SEO design output (quality bar + structure)
 - [runtime learning adapters](../runtime-learning.md) — common Learn contract and Hermes, Claude Code, and Codex mappings
 - Hermes skill **`architecture-diagram`** — preferred diagram generator when installed

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { resolve } from "node:path";
 import { LoopDefinitionSchema } from "../../src/domain/schemas.js";
 import { ActivationPlanSchema, createHermesActivationPlan } from "../../src/runtimes/activation-plan.js";
 import { HermesRuntimeAdapter } from "../../src/runtimes/hermes.js";
@@ -22,39 +23,51 @@ describe("inert Hermes activation plans", () => {
     const plan = createHermesActivationPlan(loop, {
       skills: ["pv-admin-playbook", "document-qa"],
       deliveryTarget: "slack:ops-alerts",
+      profile: "pv-admin",
     });
     expect(ActivationPlanSchema.parse(plan)).toEqual(plan);
     expect(plan.enabled).toBe(false);
     expect(plan.controller).toEqual({
       executable: "loopstack",
-      args: ["prompt-cycle", "run", "--loop", "pv-admin"],
+      args: ["prompt-cycle", "run", "--loop", resolve("loops/pv-admin")],
     });
     expect(plan.skills).toEqual(["pv-admin-playbook", "document-qa"]);
     expect(plan.deliveryTarget).toBe("slack:ops-alerts");
+    expect(plan.profile).toBe("pv-admin");
 
     const cron = plan.triggers.find(({ id }) => id === "weekly-review")!;
     expect(cron.activation).toEqual({
       executable: "hermes",
       args: [
-        "cron", "create", "--id", "weekly-review", "--schedule", "0 8 * * 1", "--",
-        "loopstack", "prompt-cycle", "run", "--loop", "pv-admin",
+        "-p", "pv-admin", "cron", "create", "0 8 * * 1",
+        expect.stringContaining("loopstack prompt-cycle run"),
+        "--name", "weekly-review",
+        "--deliver", "slack:ops-alerts",
+        "--skill", "pv-admin-playbook",
+        "--skill", "document-qa",
+        "--workdir", resolve("loops/pv-admin"),
       ],
     });
-    expect(cron.verification.map(({ args }) => args.slice(0, 2))).toEqual([
-      ["cron", "list"], ["cron", "test"],
-    ]);
-    expect(cron.removal.args).toEqual(["cron", "remove", "weekly-review"]);
+    expect(cron.verification).toEqual([{ executable: "hermes", args: ["-p", "pv-admin", "cron", "list", "--all"] }]);
+    expect(cron.removal.args).toEqual(["-p", "pv-admin", "cron", "remove", "weekly-review"]);
 
     const webhook = plan.triggers.find(({ id }) => id === "visit-validated")!;
-    expect(webhook.activation.args).toEqual(expect.arrayContaining([
-      "webhook", "subscribe", "--secret-env", "LOOPSTACK_PV_ADMIN_WEBHOOK_SECRET",
-      "--idempotency-header", "x-loopstack-idempotency-key",
-    ]));
+    expect(webhook.activation.args).toEqual([
+      "-p", "pv-admin", "webhook", "subscribe", "visit-validated",
+      "--prompt", expect.stringContaining("loopstack prompt-cycle run"),
+      "--events", "visit.validated",
+      "--description", "Loopstack trigger for PV administration",
+      "--skills", "pv-admin-playbook,document-qa",
+      "--deliver", "slack:ops-alerts",
+    ]);
     expect(webhook.security).toMatchObject({
       hmacRequired: true,
+      secretEnv: null,
+      secretManagement: "hermes-generated",
       idempotencyKey: "client+version",
     });
-    expect(webhook.removal.args).toEqual(["webhook", "remove", "visit-validated"]);
+    expect(webhook.verification).toEqual([{ executable: "hermes", args: ["-p", "pv-admin", "webhook", "list"] }]);
+    expect(webhook.removal.args).toEqual(["-p", "pv-admin", "webhook", "remove", "visit-validated"]);
   });
 
   it("renders plans as artifacts without executing any command", async () => {

@@ -1,6 +1,7 @@
 import { copyFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
 const allowedFiles = [
   ".gitignore",
@@ -9,6 +10,8 @@ const allowedFiles = [
   "registry.yaml",
   "tests/.gitkeep",
 ] as const;
+
+const templatesRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../templates/business-loops");
 
 export class BusinessRepoInitError extends Error {
   constructor(readonly code: "TARGET_NOT_EMPTY" | "PLAN_APPROVAL_REQUIRED" | "GIT_INIT_FAILED") {
@@ -27,7 +30,8 @@ export function initBusinessRepo(
   for (const relative of allowedFiles) {
     const destination = join(target, relative);
     mkdirSync(dirname(destination), { recursive: true });
-    copyFileSync(join("templates/business-loops", relative), destination);
+    const source = relative === ".gitignore" ? "gitignore.template" : relative;
+    copyFileSync(join(templatesRoot, source), destination);
   }
   if (options.initializeGit) {
     const result = spawnSync("git", ["init"], { cwd: target, encoding: "utf8" });

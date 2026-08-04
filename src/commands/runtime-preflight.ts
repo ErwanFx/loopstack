@@ -5,9 +5,13 @@ import { LoopDefinitionSchema } from "../domain/schemas.js";
 import { createRuntimeAdapter } from "../runtimes/registry.js";
 import type { CommandRunner } from "../runtimes/types.js";
 import { PromptGraphDefinitionSchema } from "../graph/schemas.js";
+import { generatedLoopSkillName } from "../runtimes/render-helpers.js";
 
-const commandRunner: CommandRunner = (command, args) => new Promise((resolve) => {
-  const child = spawn(command, [...args], { stdio: ["ignore", "pipe", "pipe"] });
+export const commandRunner: CommandRunner = (command, args) => new Promise((resolve) => {
+  const child = spawn(command, [...args], {
+    stdio: ["ignore", "pipe", "pipe"],
+    env: { ...process.env, COLUMNS: "500" },
+  });
   let stdout = "";
   let stderr = "";
   child.stdout.on("data", (chunk) => { stdout += String(chunk); });
@@ -25,6 +29,7 @@ export async function runRuntimePreflightCommand(args: readonly string[]): Promi
   const runtime = option(args, "--runtime");
   const loopPath = option(args, "--loop");
   const graphPath = option(args, "--graph");
+  const profile = option(args, "--profile");
   if (!runtime || !loopPath) {
     console.error(JSON.stringify({ code: "INVALID_ARGUMENT", message: "Provide --runtime and --loop" }));
     return 2;
@@ -40,8 +45,9 @@ export async function runRuntimePreflightCommand(args: readonly string[]): Promi
     }
     const result = await createRuntimeAdapter(runtime, commandRunner).preflight({
       loop,
-      requiredSkills: [`${loop.id}-loop`],
+      requiredSkills: [generatedLoopSkillName(loop.id)],
       requiredTools: document.tools ?? [],
+      ...(profile === undefined ? {} : { profile }),
       ...(graph === undefined ? {} : { graph }),
     });
     console.log(JSON.stringify(result, null, 2));

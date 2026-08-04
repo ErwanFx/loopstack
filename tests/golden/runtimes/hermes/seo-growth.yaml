@@ -34,7 +34,7 @@ promptCycle:
       - prompt-cycle
       - run
       - --loop
-      - seo-growth
+      - loops/seo-growth
   requestContract: AgentRunRequest
   resultContract: AgentRunResult
   decisions:

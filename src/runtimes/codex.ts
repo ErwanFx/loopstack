@@ -1,5 +1,3 @@
-import { constants } from "node:fs";
-import { access, readFile } from "node:fs/promises";
 import type {
   CommandRunner,
   PromptCycleEntryContract,
@@ -11,6 +9,9 @@ import type {
   RuntimeValidation,
 } from "./types.js";
 import { renderGraphExecution } from "./graph-execution.js";
+import { validateRuntimePackage } from "./package-validation.js";
+import { codexHasEnabledMcp, codexHasEnabledPlugin } from "./preflight-inspection.js";
+import { generatedLoopSkillName, renderGeneratedLoopSkill, safeDisplayName } from "./render-helpers.js";
 
 type CodexRenderedPackage = RenderedRuntimePackage & {
   toolPolicy: { allow: string[] };
@@ -36,7 +37,8 @@ export class CodexRuntimeAdapter implements RuntimeAdapter {
 
   async render(input: RuntimeRenderInput): Promise<CodexRenderedPackage> {
     const { loop } = input;
-    const skills = input.skills ?? [`${loop.id}-loop`];
+    const wrapperName = generatedLoopSkillName(loop.id);
+    const skills = input.skills ?? [wrapperName];
     const toolPolicy = { allow: [...(input.allowedTools ?? [])].sort() };
     const triggers = loop.triggers.map((trigger) => ({
       type: trigger.type,
@@ -57,13 +59,16 @@ export class CodexRuntimeAdapter implements RuntimeAdapter {
     const externalTriggerRequirements = triggers
       .filter((trigger) => trigger.external)
       .map((trigger) => `${trigger.type}: external receiver invokes loopstack prompt-cycle with loop id and idempotency key`);
-    const cycle = promptCycle(loop.id);
     const workDirectory = input.workDirectory ?? `loops/${loop.id}`;
+    const cycle = promptCycle(workDirectory);
     const graphPackage = input.graph === undefined ? undefined : renderGraphExecution(input.graph, this.name, loop.id, {
       freshSessions: true,
       sequentialFallback: true,
       maxConcurrency: input.graph.budgets.maxConcurrency,
     });
+    const displayName = safeDisplayName(loop.name);
+    const pluginVersion = `${loop.version}.0.0`;
+    const wrapperSkill = renderGeneratedLoopSkill(loop.id, loop.name, skills);
     const portable = {
       runtime: this.name,
       manifestVersion: 1 as const,
@@ -89,11 +94,22 @@ export class CodexRuntimeAdapter implements RuntimeAdapter {
         "runtime.json": `${JSON.stringify(portable, null, 2)}\n`,
         ".codex-plugin/plugin.json": `${JSON.stringify({
           name: `loopstack-${loop.id}`,
-          version: String(loop.version),
-          description: `Codex runtime wrapper for ${loop.name}`,
+          version: pluginVersion,
+          description: `Codex runtime wrapper for ${displayName}`,
+          author: { name: "Loopstack" },
+          skills: "./skills/",
+          interface: {
+            displayName: `${displayName} Loop`,
+            shortDescription: `Operate the ${displayName} loop safely.`,
+            longDescription: `Runs the generated ${displayName} prompt cycle with durable checkpoints and declared approvals.`,
+            developerName: "Loopstack",
+            category: "Productivity",
+            capabilities: [],
+            defaultPrompt: [`Run the ${displayName} loop safely.`],
+          },
         }, null, 2)}\n`,
         "tool-policy.json": `${JSON.stringify(toolPolicy, null, 2)}\n`,
-        "skill-wrapper.md": `Run ${skills.join(", ")} through the Loopstack prompt-cycle controller. Preserve human gates and durable checkpoints.\n`,
+        [`skills/${wrapperName}/SKILL.md`]: wrapperSkill,
         ...(graphPackage === undefined ? {} : {
           "graph.json": graphPackage.graphFile,
           "graph-binding.json": `${JSON.stringify(graphPackage.execution, null, 2)}\n`,
@@ -103,18 +119,30 @@ export class CodexRuntimeAdapter implements RuntimeAdapter {
   }
 
   async preflight(input: RuntimePreflightInput): Promise<RuntimePreflight> {
-    const [cli, plugins] = await Promise.all([
+    const [cli, authentication, plugins, tools] = await Promise.all([
       this.runner("codex", ["--version"]),
-      this.runner("codex", ["plugin", "list"]),
+      this.runner("codex", ["login", "status"]),
+      this.runner("codex", ["plugin", "list", "--json"]),
+      this.runner("codex", ["mcp", "list", "--json"]),
     ]);
     const blockers: string[] = [];
     if (cli.exitCode !== 0) blockers.push("codex_cli");
+    const authenticated = authentication.exitCode === 0
+      && !/not logged in/i.test(`${authentication.stdout}\n${authentication.stderr}`);
+    if (!authenticated) blockers.push("authenticated_profile");
     if (plugins.exitCode !== 0) blockers.push("skills_directory");
+    const wrapperName = `loopstack-${input.loop.id}`;
+    const wrapperReady = plugins.exitCode === 0 && codexHasEnabledPlugin(plugins.stdout, wrapperName);
+    if (!wrapperReady) blockers.push(`runtime_package:${wrapperName}`);
+    if (input.requiredTools.length > 0 && tools.exitCode !== 0) blockers.push("required_tools");
+    if (tools.exitCode === 0) for (const required of input.requiredTools) {
+      if (!codexHasEnabledMcp(tools.stdout, required)) blockers.push(`tool:${required}`);
+    }
     return {
       runtime: this.name,
       cliPresent: cli.exitCode === 0,
-      authenticatedProfile: cli.exitCode === 0,
-      skillsDirectory: plugins.exitCode === 0,
+      authenticatedProfile: authenticated,
+      skillsDirectory: wrapperReady,
       triggerSupport: { manual: true, cron: false, webhook: false, event: false, queue: false },
       approvalSupport: true,
       deliveryTargetStatus: input.deliveryTarget ? "untested" : "ready",
@@ -123,16 +151,6 @@ export class CodexRuntimeAdapter implements RuntimeAdapter {
   }
 
   async validate(packagePath: string): Promise<RuntimeValidation> {
-    try {
-      await Promise.all([
-        access(`${packagePath}/runtime.json`, constants.R_OK),
-        access(`${packagePath}/.codex-plugin/plugin.json`, constants.R_OK),
-      ]);
-      JSON.parse(await readFile(`${packagePath}/runtime.json`, "utf8"));
-      JSON.parse(await readFile(`${packagePath}/.codex-plugin/plugin.json`, "utf8"));
-      return { valid: true, errors: [] };
-    } catch (error) {
-      return { valid: false, errors: [error instanceof Error ? error.message : String(error)] };
-    }
+    return validateRuntimePackage(packagePath, this.name);
   }
 }

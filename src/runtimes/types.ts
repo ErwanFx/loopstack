@@ -36,6 +36,7 @@ export type RuntimeRenderInput = {
   alertPolicy?: string;
   workDirectory?: string;
   deliveryTarget?: string;
+  profile?: string;
   graph?: PromptGraphDefinition;
 };
 

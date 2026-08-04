@@ -9,7 +9,7 @@ loop:
   status: designing
   target: { metric: qualified_leads, desired: 40, horizonDays: 90 }
   current: { value: 12, observedAt: "2026-08-01T00:00:00.000Z" }
-  triggers: [{ type: cron }]
+  triggers: [{ type: cron, configuration: { schedule: "0 8 * * 1" } }]
   feedback: [{ metric: qualified_leads, delayDays: 30 }]
 readiness:
   recurringOpportunity: true

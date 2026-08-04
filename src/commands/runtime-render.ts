@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import { parse } from "yaml";
 import { LoopDefinitionSchema } from "../domain/schemas.js";
 import { createRuntimeAdapter } from "../runtimes/registry.js";
@@ -16,6 +17,8 @@ export async function runRuntimeRenderCommand(args: readonly string[]): Promise<
   const loopPath = option(args, "--loop");
   const outputPath = option(args, "--out");
   const graphPath = option(args, "--graph");
+  const profile = option(args, "--profile");
+  const workDirectory = option(args, "--workdir") ?? dirname(resolve(loopPath ?? "."));
   if (!runtime || !loopPath || !outputPath) {
     console.error(JSON.stringify({ code: "INVALID_ARGUMENT", message: "Provide --runtime, --loop, and --out" }));
     return 2;
@@ -34,9 +37,12 @@ export async function runRuntimeRenderCommand(args: readonly string[]): Promise<
     if (graph !== undefined && graph.loopId !== loop.id) {
       throw new Error(`Graph loopId ${graph.loopId} does not match loop ${loop.id}`);
     }
-    const rendered = await createRuntimeAdapter(runtime).render({
+    const adapter = createRuntimeAdapter(runtime);
+    const rendered = await adapter.render({
       loop,
       allowedTools: document.tools ?? [],
+      workDirectory,
+      ...(profile === undefined ? {} : { profile }),
       ...(graph === undefined ? {} : { graph }),
     });
     await mkdir(outputPath, { recursive: true });
@@ -45,6 +51,10 @@ export async function runRuntimeRenderCommand(args: readonly string[]): Promise<
       await mkdir(path.slice(0, Math.max(0, path.lastIndexOf("/"))), { recursive: true });
       await writeFile(path, content);
     }));
+    const packageValidation = await adapter.validate(resolve(outputPath));
+    if (!packageValidation.valid) {
+      throw new Error(`Generated runtime package is invalid: ${packageValidation.errors.join("; ")}`);
+    }
     console.log(JSON.stringify({ runtime, loopId: loop.id, outputPath, triggersEnabled: false }));
     return 0;
   } catch (error) {
